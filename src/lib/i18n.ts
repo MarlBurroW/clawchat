@@ -42,6 +42,8 @@ const en = {
   // Sidebar
   'sidebar.title': 'Sessions',
   'sidebar.empty': 'No sessions',
+  'sidebar.search': 'Search sessions…',
+  'sidebar.noResults': 'No matching sessions',
 
   // Thinking
   'thinking.label': 'Thinking',
@@ -93,6 +95,8 @@ const fr: Record<keyof typeof en, string> = {
 
   'sidebar.title': 'Sessions',
   'sidebar.empty': 'Aucune session',
+  'sidebar.search': 'Rechercher…',
+  'sidebar.noResults': 'Aucun résultat',
 
   'thinking.label': 'Réflexion',
 

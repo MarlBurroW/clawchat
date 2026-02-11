@@ -1,4 +1,5 @@
-import { MessageSquare, X, Sparkles } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { MessageSquare, X, Sparkles, Search } from 'lucide-react';
 import type { Session } from '../types';
 import { useT } from '../hooks/useLocale';
 
@@ -12,6 +13,29 @@ interface Props {
 
 export function Sidebar({ sessions, activeSession, onSwitch, open, onClose }: Props) {
   const t = useT();
+  const [filter, setFilter] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcut: Ctrl+K or Cmd+K to focus search when sidebar is open
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!filter.trim()) return sessions;
+    const q = filter.toLowerCase();
+    return sessions.filter(s =>
+      (s.label || s.key).toLowerCase().includes(q)
+    );
+  }, [sessions, filter]);
+
   return (
     <>
       {open && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={onClose} />}
@@ -30,11 +54,41 @@ export function Sidebar({ sessions, activeSession, onSwitch, open, onClose }: Pr
             <X size={16} />
           </button>
         </div>
+
+        {/* Session search */}
+        {sessions.length > 3 && (
+          <div className="px-2 pt-2">
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                placeholder={t('sidebar.search')}
+                aria-label={t('sidebar.search')}
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-white/8 bg-zinc-800/30 text-xs text-zinc-300 placeholder:text-zinc-500 outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all"
+              />
+              {filter && (
+                <button
+                  onClick={() => setFilter('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto py-2 px-2">
           {sessions.length === 0 && (
             <div className="px-3 py-8 text-center text-zinc-500 text-sm">{t('sidebar.empty')}</div>
           )}
-          {sessions.map(s => {
+          {sessions.length > 0 && filtered.length === 0 && (
+            <div className="px-3 py-6 text-center text-zinc-500 text-xs">{t('sidebar.noResults')}</div>
+          )}
+          {filtered.map(s => {
             const isActive = s.key === activeSession;
             return (
               <button
