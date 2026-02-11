@@ -1,5 +1,24 @@
 # FEEDBACK.md — PinchChat Feedback Queue
 
+## Item #12
+- **Date:** 2026-02-11
+- **Priority:** high
+- **Status:** pending
+- **Description:** Animated fake UI demo on the GitHub Pages landing page
+  - Créer une version fake/simulée de l'interface PinchChat directement dans la landing page (docs/index.html)
+  - L'animation doit montrer un dialogue réaliste entre un utilisateur et un assistant AI, avec :
+    - Un message utilisateur qui s'affiche (typing effect)
+    - L'assistant qui "réfléchit" (thinking indicator)
+    - Des badges de tool calls colorés qui apparaissent (comme dans la vraie app : exec en amber, read en sky, web_search en emerald, etc.)
+    - Les tool calls qui s'expandent pour montrer les paramètres/résultats
+    - Le message final de l'assistant avec du markdown formaté
+    - Une sidebar simplifiée avec quelques sessions fake et des barres de tokens
+  - Le tout doit boucler ou rejouer après quelques secondes
+  - Utiliser du CSS/JS pur (pas de React, c'est une page statique)
+  - Reproduire le même style visuel que l'app (dark theme, mêmes couleurs, mêmes badges, mêmes fonts)
+  - L'objectif c'est que les visiteurs voient immédiatement à quoi ressemble l'app sans avoir à l'installer
+  - Mettre ça en haut de la landing page, au-dessus ou juste en dessous du hero
+
 ## Item #11
 - **Date:** 2026-02-11
 - **Priority:** high
