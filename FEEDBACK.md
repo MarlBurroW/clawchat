@@ -3,7 +3,8 @@
 ## Item #11
 - **Date:** 2026-02-11
 - **Priority:** high
-- **Status:** in-progress
+- **Status:** done
+- **Completed:** 2026-02-11 — commit `f556c8d`
 - **Description:** Rewrite des features — README + GitHub Pages landing page
   - Les features actuelles sont mal vendues. Trop techniques, pas assez pragmatiques.
   - **Ce qu'il ne faut PAS vendre comme feature :**
