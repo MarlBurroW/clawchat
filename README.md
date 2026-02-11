@@ -1,8 +1,12 @@
 # 🦞 ClawChat
 
+[![CI](https://github.com/MarlBurroW/clawchat/actions/workflows/ci.yml/badge.svg)](https://github.com/MarlBurroW/clawchat/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+
 **A sleek, dark-themed webchat UI for [OpenClaw](https://github.com/openclaw/openclaw) — monitor sessions, stream responses, and inspect tool calls in real-time.**
 
-![ClawChat Screenshot](https://via.placeholder.com/800x450?text=ClawChat+Screenshot)
+> 🖼️ *Screenshot coming soon — [contributions welcome](https://github.com/MarlBurroW/clawchat/issues)!*
 
 ## ✨ Features
 
