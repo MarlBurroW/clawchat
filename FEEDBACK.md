@@ -76,7 +76,8 @@
 ## Item #9
 - **Date:** 2026-02-11
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-11 — commit `4f47732`
 - **Description:** GitHub Pages — landing page / démo
   - Activer GitHub Pages sur le repo (branche `gh-pages` ou dossier `docs/`)
   - Créer une landing page simple et stylée (même thème dark neon que l'app) avec :
