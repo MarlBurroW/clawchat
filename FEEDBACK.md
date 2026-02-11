@@ -3,7 +3,8 @@
 ## Item #12
 - **Date:** 2026-02-11
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-11 — commit `d26c498`
 - **Description:** Animated fake UI demo on the GitHub Pages landing page
   - Créer une version fake/simulée de l'interface PinchChat directement dans la landing page (docs/index.html)
   - L'animation doit montrer un dialogue réaliste entre un utilisateur et un assistant AI, avec :
