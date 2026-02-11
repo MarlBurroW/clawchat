@@ -10,7 +10,8 @@
 ## Item #2
 - **Date:** 2026-02-11
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-11 — commit `8834b2a`
 - **Description:** Filtrer les messages "NO_REPLY" — ne pas afficher les messages dont le contenu est exactement "NO_REPLY" (ce sont des réponses internes de l'agent qui ne doivent pas être visibles dans le chat)
 
 ## Item #3
