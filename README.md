@@ -17,6 +17,8 @@
 - 📝 **Markdown rendering** — full GFM support with code highlighting
 - 📎 **File upload** — attach files to your messages
 - ⚡ **Streaming responses** — watch the AI think in real-time
+- 🔐 **Runtime login** — enter gateway credentials at runtime, no secrets in the build
+- 🌐 **i18n support** — English and French, configurable via `VITE_LOCALE`
 
 ## 🚀 Quick Start
 
@@ -34,11 +36,11 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your gateway details:
+Optionally edit `.env` to pre-fill the gateway URL:
 
 ```env
 VITE_GATEWAY_WS_URL=ws://localhost:18789
-VITE_GATEWAY_TOKEN=your-gateway-token-here
+VITE_LOCALE=en          # or "fr" for French UI
 ```
 
 Start the dev server:
@@ -58,10 +60,14 @@ Or serve the `dist/` folder with nginx, Caddy, or any static file server.
 
 ## ⚙️ Configuration
 
+All configuration is optional — credentials are entered at runtime via the login screen.
+
 | Variable | Description | Default |
 |---|---|---|
-| `VITE_GATEWAY_WS_URL` | WebSocket URL of the OpenClaw gateway | `ws://<hostname>:18789` |
-| `VITE_GATEWAY_TOKEN` | Authentication token for the gateway | *(required)* |
+| `VITE_GATEWAY_WS_URL` | Pre-fill the gateway URL on the login screen | `ws://<hostname>:18789` |
+| `VITE_LOCALE` | UI language (`en` or `fr`) | `en` |
+
+> **Note:** The gateway token is entered at runtime and stored in `localStorage` — it is never baked into the build.
 
 ## 🛠 Tech Stack
 
