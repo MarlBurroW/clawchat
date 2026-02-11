@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import rehypeHighlight from 'rehype-highlight';
 import type { ChatMessage as ChatMessageType, MessageBlock } from '../types';
 import { ThinkingBlock } from './ThinkingBlock';
@@ -146,7 +147,7 @@ const markdownComponents = { pre: CodeBlock, img: MarkdownImage };
 function renderTextBlocks(blocks: MessageBlock[]) {
   return getTextBlocks(blocks).map((block, i) => (
     <div key={`text-${i}`} className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>
         {autoFormatText((block as any).text)}
       </ReactMarkdown>
     </div>
@@ -280,7 +281,7 @@ export function ChatMessageComponent({ message }: { message: ChatMessageType }) 
           {/* User-visible text */}
           {message.blocks.length > 0 ? renderTextBlocks(message.blocks) : (
             <div className="markdown-body">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>
                 {autoFormatText(message.content)}
               </ReactMarkdown>
             </div>
