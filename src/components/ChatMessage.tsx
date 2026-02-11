@@ -6,12 +6,16 @@ import type { ChatMessage as ChatMessageType, MessageBlock } from '../types';
 import { ThinkingBlock } from './ThinkingBlock';
 import { ToolCall } from './ToolCall';
 import { Bot, User, Wrench } from 'lucide-react';
+import { t, locale } from '../lib/i18n';
 // ChevronDown, ChevronRight, Wrench still used by InternalOnlyMessage
+
+/** Map i18n locale code to BCP-47 locale for Intl formatting */
+const bcp47Locale = locale === 'fr' ? 'fr-FR' : 'en-US';
 
 function formatTimestamp(ts: number): string {
   const date = new Date(ts);
   const now = new Date();
-  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const time = date.toLocaleTimeString(bcp47Locale, { hour: '2-digit', minute: '2-digit' });
   
   const isToday = date.toDateString() === now.toDateString();
   const yesterday = new Date(now);
@@ -19,8 +23,8 @@ function formatTimestamp(ts: number): string {
   const isYesterday = date.toDateString() === yesterday.toDateString();
   
   if (isToday) return time;
-  if (isYesterday) return `Hier ${time}`;
-  return `${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} ${time}`;
+  if (isYesterday) return `${t('time.yesterday')} ${time}`;
+  return `${date.toLocaleDateString(bcp47Locale, { day: 'numeric', month: 'short' })} ${time}`;
 }
 
 /** Guess a language hint from content patterns */

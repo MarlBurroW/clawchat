@@ -43,6 +43,9 @@ const en = {
 
   // Tool call
   'tool.result': 'Result',
+
+  // Timestamps
+  'time.yesterday': 'Yesterday',
 } as const;
 
 const fr: Record<keyof typeof en, string> = {
@@ -78,6 +81,8 @@ const fr: Record<keyof typeof en, string> = {
   'thinking.label': 'Réflexion',
 
   'tool.result': 'Résultat',
+
+  'time.yesterday': 'Hier',
 };
 
 const messages: Record<string, Record<string, string>> = { en, fr };
