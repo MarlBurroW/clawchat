@@ -1,9 +1,9 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { ChatMessageComponent } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import type { ChatMessage, ConnectionStatus } from '../types';
-import { Bot } from 'lucide-react';
+import { Bot, ArrowDown } from 'lucide-react';
 import { useT } from '../hooks/useLocale';
 
 interface Props {
@@ -50,12 +50,14 @@ export function Chat({ messages, isGenerating, status, onSend, onAbort }: Props)
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const userSentRef = useRef(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const checkIfNearBottom = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     isNearBottomRef.current = distanceFromBottom <= SCROLL_THRESHOLD;
+    setShowScrollBtn(distanceFromBottom > SCROLL_THRESHOLD * 2);
   }, []);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -94,7 +96,7 @@ export function Chat({ messages, isGenerating, status, onSend, onAbort }: Props)
   const showTyping = isGenerating && !hasStreamedText(messages);
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0 relative">
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative" role="log" aria-label={t('chat.messages')} aria-live="polite">
         <div className="max-w-4xl mx-auto py-4">
           {messages.length === 0 && (
@@ -116,6 +118,19 @@ export function Chat({ messages, isGenerating, status, onSend, onAbort }: Props)
           <div ref={bottomRef} />
         </div>
       </div>
+      {/* Scroll to bottom FAB */}
+      {showScrollBtn && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10">
+          <button
+            onClick={() => scrollToBottom('smooth')}
+            aria-label={t('chat.scrollToBottom')}
+            className="flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-800/90 backdrop-blur-lg px-3.5 py-2 text-xs text-zinc-300 shadow-lg hover:bg-zinc-700/90 transition-all hover:shadow-cyan-500/10"
+          >
+            <ArrowDown size={14} className="text-cyan-300" />
+            <span className="hidden sm:inline">{t('chat.scrollToBottom')}</span>
+          </button>
+        </div>
+      )}
       <ChatInput onSend={handleSend} onAbort={onAbort} isGenerating={isGenerating} disabled={status !== 'connected'} />
     </div>
   );

@@ -36,6 +36,7 @@ const en = {
   'chat.attachFile': 'Attach file',
   'chat.send': 'Send',
   'chat.stop': 'Stop',
+  'chat.scrollToBottom': 'New messages',
   'chat.messages': 'Chat messages',
 
   // Sidebar
@@ -78,6 +79,7 @@ const fr: Record<keyof typeof en, string> = {
   'chat.attachFile': 'Joindre un fichier',
   'chat.send': 'Envoyer',
   'chat.stop': 'Arrêter',
+  'chat.scrollToBottom': 'Nouveaux messages',
   'chat.messages': 'Messages du chat',
 
   'sidebar.title': 'Sessions',
