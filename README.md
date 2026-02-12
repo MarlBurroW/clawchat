@@ -240,6 +240,10 @@ npm run build
 
 See [CHANGELOG.md](CHANGELOG.md) for a detailed history of changes.
 
+## 🔒 Security
+
+See [SECURITY.md](SECURITY.md) for the security policy and how to report vulnerabilities.
+
 ## 🤝 Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
