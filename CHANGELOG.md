@@ -4,6 +4,11 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.11.1] — 2026-02-12
+
+### Fixed
+- **Windows horizontal scrollbar** — hide horizontal scrollbar in textarea input; add word-wrap to prevent overflow
+
 ## [1.11.0] — 2026-02-12
 
 ### Added

@@ -379,7 +379,8 @@
 ## Item #37
 - **Date:** 2026-02-12
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `ad7d149`
 - **Description:** Scrollbar in textarea still ugly on Windows (horizontal scrollbar)
 - **Details:**
   - Josh reports the textarea horizontal scrollbar is still ugly/beige on Windows even after v1.11.0
