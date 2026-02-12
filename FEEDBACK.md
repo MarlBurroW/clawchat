@@ -225,7 +225,8 @@
 ## Item #26
 - **Date:** 2026-02-12
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `8ef1b42`
 - **Description:** Mobile viewport overflow — conversation clipped on left and right edges on iPhone
 - **Details:**
   - On iPhone, the chat messages are slightly clipped on both sides, requiring the user to pinch-zoom out
