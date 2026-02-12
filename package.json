@@ -9,6 +9,23 @@
   },
   "license": "MIT",
   "author": "Nicolas Varrot",
+  "homepage": "https://marlburrow.github.io/pinchchat/",
+  "bugs": {
+    "url": "https://github.com/MarlBurroW/pinchchat/issues"
+  },
+  "keywords": [
+    "openclaw",
+    "webchat",
+    "chat-ui",
+    "ai-agent",
+    "llm",
+    "tool-calls",
+    "dark-theme",
+    "react",
+    "vite",
+    "streaming",
+    "websocket"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
