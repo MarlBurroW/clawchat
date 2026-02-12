@@ -491,3 +491,12 @@
   - Check the gateway WebSocket session/handshake data for avatar info
   - Fallback to the current default icon if no avatar is configured
   - Should also appear in the header next to the agent name
+
+## Item #46
+- **Date:** 2026-02-12
+- **Priority:** high
+- **Status:** in-progress
+- **Description:** Bug: metadata viewer (ℹ️ button) doesn't work
+  - Clicking the info button on messages does nothing — no panel appears
+  - Introduced in v1.15.0 (commit `b4813f0`)
+  - Fix the click handler / panel display logic

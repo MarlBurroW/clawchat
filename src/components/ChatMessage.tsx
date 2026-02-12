@@ -1,5 +1,6 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -242,11 +243,32 @@ function CopyButton({ text }: { text: string }) {
 
 function MetadataViewer({ metadata }: { metadata?: Record<string, unknown> }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const btn = btnRef.current;
+    if (btn) {
+      const r = btn.getBoundingClientRect();
+      setPos({ top: r.top - 4, left: r.left });
+    }
+    const handleClick = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node) && !btnRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
   if (!metadata || Object.keys(metadata).length === 0) return null;
 
   return (
     <div className="relative inline-block">
       <button
+        ref={btnRef}
         onClick={() => setOpen(o => !o)}
         className="h-7 w-7 rounded-lg border border-white/8 bg-zinc-800/80 backdrop-blur-sm flex items-center justify-center text-zinc-400 hover:text-cyan-300 hover:border-cyan-400/30 transition-all opacity-0 group-hover:opacity-100"
         title={t('message.metadata')}
@@ -254,15 +276,16 @@ function MetadataViewer({ metadata }: { metadata?: Record<string, unknown> }) {
       >
         <Info size={13} />
       </button>
-      {open && (
-        <div className="absolute bottom-9 left-0 z-50 w-72 max-h-64 overflow-auto rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-xl p-3 text-[11px] text-zinc-400 font-mono leading-relaxed custom-scrollbar">
+      {open && pos && createPortal(
+        <div ref={panelRef} className="fixed z-[9999] w-72 max-h-64 overflow-auto rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-md shadow-xl p-3 text-[11px] text-zinc-400 font-mono leading-relaxed custom-scrollbar" style={{ top: pos.top, left: pos.left, transform: 'translateY(-100%)' }}>
           {Object.entries(metadata).map(([k, v]) => (
             <div key={k} className="flex gap-2 py-0.5">
               <span className="text-cyan-400/70 shrink-0">{k}:</span>
               <span className="text-zinc-300 break-all">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -337,7 +360,7 @@ export function ChatMessageComponent({ message, onRetry }: { message: ChatMessag
           {!isUser && !message.isStreaming && getPlainText(message).trim() && (
             <CopyButton text={getPlainText(message)} />
           )}
-          <div className={`absolute top-2 ${isUser ? 'left-2' : 'right-10'} flex gap-1 opacity-0 group-hover:opacity-100 transition-all`}>
+          <div className={`absolute top-2 ${isUser ? 'left-2' : 'right-10'} flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10`}>
             <MetadataViewer metadata={message.metadata} />
           </div>
           {/* Retry button (user messages only) */}
