@@ -60,6 +60,7 @@ const en = {
 
   // Thinking
   'thinking.label': 'Thinking',
+  'thinking.reasoning': 'Reasoning…',
 
   // Tool call
   'tool.parameters': 'Parameters',
@@ -151,6 +152,7 @@ const fr: Record<keyof typeof en, string> = {
   'sidebar.deleteCancel': 'Annuler',
 
   'thinking.label': 'Réflexion',
+  'thinking.reasoning': 'Réflexion…',
 
   'tool.parameters': 'Paramètres',
   'tool.result': 'Résultat',

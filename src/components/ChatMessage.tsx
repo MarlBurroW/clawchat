@@ -7,6 +7,7 @@ import remarkBreaks from 'remark-breaks';
 import rehypeHighlight from 'rehype-highlight';
 import type { ChatMessage as ChatMessageType, MessageBlock } from '../types';
 import { ThinkingBlock } from './ThinkingBlock';
+import { ThinkingIndicator } from './ThinkingIndicator';
 import { CodeBlock } from './CodeBlock';
 import { ToolCall } from './ToolCall';
 import { ImageBlock } from './ImageBlock';
@@ -388,14 +389,20 @@ export function ChatMessageComponent({ message, onRetry, agentAvatarUrl }: { mes
           {/* Inline images */}
           {renderImageBlocks(message.blocks)}
 
-          {/* Streaming dots */}
-          {message.isStreaming && (
-            <div className="flex gap-1 mt-2">
-              <span className="bounce-dot w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-300/80 to-violet-400/80 inline-block" />
-              <span className="bounce-dot w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-300/80 to-violet-400/80 inline-block" />
-              <span className="bounce-dot w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-300/80 to-violet-400/80 inline-block" />
-            </div>
-          )}
+          {/* Streaming indicator */}
+          {message.isStreaming && (() => {
+            const hasVisibleContent = message.content?.trim();
+            if (!hasVisibleContent) {
+              return <ThinkingIndicator />;
+            }
+            return (
+              <div className="flex gap-1 mt-2">
+                <span className="bounce-dot w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-300/80 to-violet-400/80 inline-block" />
+                <span className="bounce-dot w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-300/80 to-violet-400/80 inline-block" />
+                <span className="bounce-dot w-1.5 h-1.5 rounded-full bg-gradient-to-r from-cyan-300/80 to-violet-400/80 inline-block" />
+              </div>
+            );
+          })()}
 
           {/* Tool calls & thinking (inline) */}
           {!isUser && <InternalsSummary blocks={message.blocks} />}
