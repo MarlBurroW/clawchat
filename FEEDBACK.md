@@ -443,7 +443,8 @@
 ## Item #42
 - **Date:** 2026-02-12
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `792a34b`
 - **Description:** Visual differentiation between user messages and assistant messages/tool calls
 - **Details:**
   - Currently user and assistant messages look too similar
