@@ -484,7 +484,8 @@
 ## Item #45
 - **Date:** 2026-02-12
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `da2e486`
 - **Description:** Display the agent's avatar when set in OpenClaw config
   - OpenClaw gateway can provide an avatar URL for the agent (configured in openclaw.json)
   - PinchChat should display this avatar next to assistant messages instead of the default Bot icon
