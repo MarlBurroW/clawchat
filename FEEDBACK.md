@@ -389,3 +389,77 @@
   - May need to also hide the horizontal scrollbar entirely (textarea shouldn't need horizontal scroll — use word-wrap/overflow-wrap instead)
   - Add `overflow-x: hidden` on the textarea to prevent horizontal scrollbar entirely
   - Also check that `resize: none` is set and `word-break: break-word` / `overflow-wrap: break-word` to avoid horizontal overflow
+
+## Item #38
+- **Date:** 2026-02-12
+- **Priority:** high
+- **Status:** pending
+- **Description:** Session deletion doesn't persist — deleted sessions reappear after page refresh
+- **Details:**
+  - The delete session feature (v1.7.0) only deletes from local state/localStorage
+  - On refresh, sessions are reloaded from the gateway via loadHistory/listSessions API
+  - Need to actually call the gateway API to delete the session server-side
+  - Check if the gateway WS protocol supports session deletion (DELETE or a command message)
+  - If not, at minimum maintain a localStorage blacklist of deleted session keys and filter them out on reload
+
+## Item #39
+- **Date:** 2026-02-12
+- **Priority:** medium
+- **Status:** pending
+- **Description:** Message metadata viewer — discreet button on each message to show raw metadata
+- **Details:**
+  - Small icon button (ℹ️ or ⋯) on hover of each message
+  - Click to expand/toggle a subtle panel showing all available metadata: timestamp, message_id, channel, sender info, session key, etc.
+  - Should show whatever the gateway sends in the message object (raw dump or formatted key/value pairs)
+  - Keep it discreet — not visible by default, only on hover, doesn't clutter the UI
+  - Useful for debugging and understanding message routing
+  - Collapsed by default, like the tool call details
+
+## Item #40
+- **Date:** 2026-02-12
+- **Priority:** medium
+- **Status:** pending
+- **Description:** Better thinking/reasoning indicator when content is hidden
+- **Details:**
+  - When the gateway streams a thinking block without visible content (thinking=low), PinchChat shows "Thinking..." but nothing happens for a while
+  - Improve the UX: show elapsed time counter, maybe a pulsing animation, and a label like "Reasoning..." or "Thinking (hidden)..."
+  - If the gateway sends thinking content (thinking=stream), display it in a collapsible block (already works)
+  - If no content is sent, at least show the user that the agent is actively reasoning and how long it's been
+  - Keep it purely client-side, no gateway modifications
+
+## Item #41
+- **Date:** 2026-02-12
+- **Priority:** medium
+- **Status:** pending
+- **Description:** Tool call payload viewer — word-wrap toggle instead of horizontal scroll
+- **Details:**
+  - Currently tool call JSON payloads/results have long lines that require horizontal scrolling
+  - Add a toggle button (wrap/nowrap) on the tool call content viewer
+  - Default to word-wrap (break-word / white-space: pre-wrap) so content fits without horizontal scroll
+  - Optional toggle to switch to nowrap (pre + overflow-x scroll) for when users want to see raw formatting
+  - Apply to both tool call parameters and tool results
+
+## Item #42
+- **Date:** 2026-02-12
+- **Priority:** high
+- **Status:** pending
+- **Description:** Visual differentiation between user messages and assistant messages/tool calls
+- **Details:**
+  - Currently user and assistant messages look too similar
+  - Add distinct background color or left border color for user messages (like classic chat apps)
+  - Keep it subtle and matching the dark theme (e.g. slightly different zinc shade, or a colored left border like cyan for user)
+  - Assistant messages stay as-is, tool calls already have their own styling
+  - System events should also be visually distinct (already somewhat handled but could be improved)
+  - Think WhatsApp/Telegram style: your messages vs their messages are clearly different
+  - Keep the soft palette for keratoconus — no harsh contrast
+
+## Item #43
+- **Date:** 2026-02-12
+- **Priority:** medium
+- **Status:** pending
+- **Description:** Textarea scrollbar always visible — should only show on overflow
+- **Details:**
+  - The vertical scrollbar in the message input textarea is always displayed
+  - It should only appear when the content exceeds the max height (overflow)
+  - Use overflow-y: auto instead of overflow-y: scroll on the textarea
+  - The scrollbar should be hidden when the textarea hasn't reached its max size

@@ -80,12 +80,27 @@ export function useGateway() {
     });
   }, []);
 
+  // Deleted sessions blacklist (persisted in localStorage)
+  const getDeletedSessions = useCallback((): Set<string> => {
+    try {
+      const raw = localStorage.getItem('pinchchat-deleted-sessions');
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch { return new Set(); }
+  }, []);
+
+  const addDeletedSession = useCallback((key: string) => {
+    const deleted = getDeletedSessions();
+    deleted.add(key);
+    localStorage.setItem('pinchchat-deleted-sessions', JSON.stringify([...deleted]));
+  }, [getDeletedSessions]);
+
   const loadSessions = useCallback(async () => {
     try {
       const res = await clientRef.current?.send('sessions.list', {});
       const sessionList = res?.sessions as Array<Record<string, unknown>> | undefined;
       if (sessionList) {
-        setSessions(sessionList.map((s) => ({
+        const deleted = getDeletedSessions();
+        setSessions(sessionList.filter((s) => !deleted.has((s.key || s.sessionKey) as string)).map((s) => ({
           key: (s.key || s.sessionKey) as string,
           label: (s.label || s.key || s.sessionKey) as string,
           messageCount: s.messageCount as number | undefined,
@@ -104,7 +119,7 @@ export function useGateway() {
     } catch {
       // Silently ignore session list failures (e.g. disconnected)
     }
-  }, []);
+  }, [getDeletedSessions]);
 
   const loadHistory = useCallback(async (sessionKey: string) => {
     setIsLoadingHistory(true);
@@ -394,8 +409,10 @@ export function useGateway() {
     try {
       await clientRef.current?.send('sessions.delete', { key, deleteTranscript: true });
     } catch {
-      // Ignore delete failures
+      // Ignore delete failures — blacklist will hide it anyway
     }
+    // Persist to blacklist so it stays hidden after refresh
+    addDeletedSession(key);
     // Remove from local state
     setSessions(prev => prev.filter(s => s.key !== key));
     // If we deleted the active session, switch to main
@@ -406,7 +423,7 @@ export function useGateway() {
       setMessages([]);
       loadHistory(mainKey);
     }
-  }, [loadHistory]);
+  }, [loadHistory, addDeletedSession]);
 
   const logout = useCallback(() => {
     if (clientRef.current) {
