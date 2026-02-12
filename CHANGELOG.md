@@ -4,6 +4,10 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.16.0] — 2026-02-12
+### Added
+- Display agent avatar from OpenClaw identity config — shown in assistant message bubbles and header when configured
+
 ## [1.15.1] — 2026-02-12
 ### Fixed
 - Metadata viewer popup was invisible due to parent `overflow-hidden` — now renders via portal outside the message bubble
