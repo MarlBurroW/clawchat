@@ -300,10 +300,10 @@ export function ChatMessageComponent({ message, onRetry }: { message: ChatMessag
 
       {/* Bubble */}
       <div className={`min-w-0 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
-        <div className={`group relative inline-block text-left rounded-3xl px-4 py-3 text-sm leading-relaxed border border-white/8 max-w-full overflow-hidden ${
+        <div className={`group relative inline-block text-left rounded-3xl px-4 py-3 text-sm leading-relaxed max-w-full overflow-hidden ${
           isUser
-            ? 'bg-gradient-to-b from-zinc-800/70 to-zinc-900/70 text-zinc-200'
-            : 'bg-zinc-800/40 text-zinc-300 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]'
+            ? 'bg-gradient-to-b from-violet-900/20 to-zinc-900/60 text-zinc-200 border border-violet-400/15'
+            : 'bg-zinc-800/40 text-zinc-300 border border-white/8 shadow-[0_0_0_1px_rgba(255,255,255,0.03)]'
         }`}>
           {/* Copy button (assistant messages only) */}
           {!isUser && !message.isStreaming && getPlainText(message).trim() && (
