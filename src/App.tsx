@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useGateway } from './hooks/useGateway';
-import { useNotifications } from './hooks/useNotifications';
+import { useNotifications, setBaseTitle } from './hooks/useNotifications';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { LoginScreen } from './components/LoginScreen';
@@ -32,6 +32,13 @@ export default function App() {
       }
     }
   }, [messages, notify]);
+
+  // Update document title with active session label
+  useEffect(() => {
+    const session = sessions.find(s => s.key === activeSession);
+    setBaseTitle(session?.label || session?.key);
+    return () => setBaseTitle(undefined);
+  }, [activeSession, sessions]);
 
   // Close sidebar on Escape key, open shortcuts on ?
   const handleKeyDown = useCallback((e: KeyboardEvent) => {

@@ -1,7 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { playNotificationSound } from '../lib/notificationSound';
 
-const ORIGINAL_TITLE = document.title;
+const APP_NAME = 'PinchChat';
+let baseTitle = APP_NAME;
+
+/** Update the base title (e.g. with active session name). Called by App. */
+export function setBaseTitle(sessionLabel?: string) {
+  baseTitle = sessionLabel ? `${sessionLabel} — ${APP_NAME}` : APP_NAME;
+  // Refresh document.title if tab is visible (no unread badge)
+  if (!document.hidden) {
+    document.title = baseTitle;
+  }
+}
 const SOUND_KEY = 'pinchchat-notification-sound';
 const hasNotificationAPI = typeof Notification !== 'undefined';
 
@@ -25,7 +35,7 @@ export function useNotifications() {
       if (!document.hidden) {
         // Reset unread when tab becomes visible
         setUnreadCount(0);
-        document.title = ORIGINAL_TITLE;
+        document.title = baseTitle;
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -35,7 +45,7 @@ export function useNotifications() {
   // Update tab title when unread count changes
   useEffect(() => {
     if (unreadCount > 0) {
-      document.title = `(${unreadCount}) ${ORIGINAL_TITLE}`;
+      document.title = `(${unreadCount}) ${baseTitle}`;
     }
   }, [unreadCount]);
 
