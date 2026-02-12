@@ -310,7 +310,8 @@
 ## Item #34
 - **Date:** 2026-02-12
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `581675d`
 - **Description:** Distinguer les événements système des messages utilisateur
 - **Details:**
   - Les événements système (TeamSpeak join/leave, webhooks, heartbeats, etc.) arrivent comme des messages `role: user` et s'affichent comme si c'était l'utilisateur qui parlait
