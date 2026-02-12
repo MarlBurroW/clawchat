@@ -406,7 +406,8 @@
 ## Item #39
 - **Date:** 2026-02-12
 - **Priority:** medium
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `b4813f0`
 - **Description:** Message metadata viewer — discreet button on each message to show raw metadata
 - **Details:**
   - Small icon button (ℹ️ or ⋯) on hover of each message

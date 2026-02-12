@@ -4,6 +4,10 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.15.0] — 2026-02-12
+### Added
+- Message metadata viewer — discreet ℹ️ button on hover shows raw message details (id, role, timestamp, channel, etc.)
+
 ## [1.14.2] — 2026-02-12
 ### Fixed
 - Textarea scrollbar only appears when content overflows max-height (no more permanent scrollbar)
