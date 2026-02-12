@@ -6,7 +6,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventio
 
 ## [Unreleased]
 
-*Nothing yet — contributions welcome!*
+### Added
+- **Channel/type icons in session list** — Discord, Telegram, cron, and webchat sessions now show recognizable icons in the sidebar (`73d9e5f`)
+- **Date separators** — visual dividers between messages from different days for easier conversation scanning (`375bd10`)
+- **Screenshot in README** — added a real screenshot of the app to the README (`788909f`)
+
+### Fixed
+- **ESLint + CI** — resolved all ESLint errors including React compiler rules; added lint step to CI pipeline (`916910f`, `29482e3`)
+- **WebSocket reconnection** — exponential backoff with jitter instead of fixed-interval retry, preventing thundering herd on server restart (`f8be728`)
 
 ## [1.1.0] — 2026-02-11
 
