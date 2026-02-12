@@ -344,3 +344,17 @@
     7. The release.yml workflow handles the rest (Docker, GitHub Release)
   - Accumulate doc/ci changes — only tag when there's a feat or fix to release
   - This replaces the previous "Nicolas tags manually" approach
+
+## Item #35
+- **Date:** 2026-02-12
+- **Priority:** high
+- **Status:** pending
+- **Description:** Markdown not rendering in long assistant messages — raw `**bold**` shown
+- **Details:**
+  - Reported by Josh (external user) — screenshot shows `**Hypothèse :**` rendered as raw text instead of bold
+  - Happens on long responses with multiple sections
+  - The message content appears to bypass ReactMarkdown rendering
+  - Investigate: is it a blocks vs content fallback issue? Does the message have empty blocks array but content filled?
+  - Check if autoFormatText() is interfering with markdown syntax
+  - Verify that streaming → final transition properly re-renders with markdown
+  - Test with a long multi-section response to reproduce

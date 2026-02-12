@@ -88,6 +88,28 @@ export function ChatInput({ onSend, onAbort, isGenerating, disabled, sessionKey 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Per-session draft storage
+  const draftsRef = useRef<Map<string, string>>(new Map());
+  const prevSessionRef = useRef<string | undefined>(sessionKey);
+
+  // Save draft to previous session and restore draft for new session
+  useEffect(() => {
+    const prev = prevSessionRef.current;
+    // Save current text as draft for the previous session
+    if (prev && prev !== sessionKey) {
+      const currentText = textareaRef.current?.value ?? text;
+      if (currentText.trim()) {
+        draftsRef.current.set(prev, currentText);
+      } else {
+        draftsRef.current.delete(prev);
+      }
+    }
+    // Restore draft for the new session
+    const draft = sessionKey ? draftsRef.current.get(sessionKey) ?? '' : '';
+    setText(draft);
+    prevSessionRef.current = sessionKey;
+  }, [sessionKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -146,6 +168,8 @@ export function ChatInput({ onSend, onAbort, isGenerating, disabled, sessionKey 
     onSend(trimmed || ' ', attachments);
     setText('');
     setFiles([]);
+    // Clear draft for this session after sending
+    if (sessionKey) draftsRef.current.delete(sessionKey);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
