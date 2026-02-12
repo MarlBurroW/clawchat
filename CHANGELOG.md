@@ -6,14 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventio
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-02-12
+
+Polish, performance, and developer experience improvements.
+
 ### Added
+- **Browser tab title** — shows the active session name in the tab title (`e53ef36`)
+- **PWA support** — manifest, apple-touch-icon, and proper favicon sizes for installable webapp (`b8cbc75`)
 - **Channel/type icons in session list** — Discord, Telegram, cron, and webchat sessions now show recognizable icons in the sidebar (`73d9e5f`)
 - **Date separators** — visual dividers between messages from different days for easier conversation scanning (`375bd10`)
 - **Screenshot in README** — added a real screenshot of the app to the README (`788909f`)
 - **Loading indicator** — spinner when switching sessions (`cb882f5`)
 - **Login URL validation** — inline hint when gateway URL doesn't start with ws:// or wss://, connect button disabled until valid (`dc49734`)
 
+### Changed
+- **Lazy-loaded Chat component** — reduces initial bundle size by deferring heavy markdown/syntax-highlighting imports (`b5eafde`)
+
 ### Fixed
+- **Notification API guard** — no longer crashes in browsers that don't support the Notification API (`8301cba`)
 - **ESLint + CI** — resolved all ESLint errors including React compiler rules; added lint step to CI pipeline (`916910f`, `29482e3`)
 - **WebSocket reconnection** — exponential backoff with jitter instead of fixed-interval retry, preventing thundering herd on server restart (`f8be728`)
 
