@@ -4,6 +4,11 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.10.0] — 2026-02-12
+
+### Added
+- **Agent name badge** — display the agent name (e.g. "Marlbot") in the header next to the session label (`17ff52a`)
+
 ## [1.9.0] — 2026-02-12
 
 ### Added
