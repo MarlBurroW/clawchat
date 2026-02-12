@@ -6,6 +6,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventio
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-02-12
+
+Small UX and documentation polish.
+
+### Added
+- **Auto-focus chat input** — input field automatically focuses when switching sessions or on connection, so you can start typing immediately (`f2038a2`)
+- **Keyboard navigation for sessions** — use arrow keys to navigate the session list in the sidebar (`f55a24c`)
+- **i18n contribution guide** — README now includes a section explaining how to add new languages (`f827307`)
+
 ## [1.2.0] — 2026-02-12
 
 Polish, performance, and developer experience improvements.
