@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { ChevronRight, ChevronDown, Check, Copy } from 'lucide-react';
+import { ChevronRight, ChevronDown, Check, Copy, WrapText, AlignLeft } from 'lucide-react';
 import hljs from 'highlight.js/lib/common';
 import { useT } from '../hooks/useLocale';
 import { ImageBlock } from './ImageBlock';
@@ -110,6 +110,21 @@ function highlightCode(text: string): string | null {
   }
 }
 
+/** Toggle word-wrap on tool call content blocks. */
+function WrapToggle({ wrap, onToggle }: { wrap: boolean; onToggle: () => void }) {
+  return (
+    <button
+      onClick={onToggle}
+      className="absolute top-2 right-8 p-1 rounded-lg bg-zinc-700/60 hover:bg-zinc-600/80 border border-white/10 text-zinc-400 hover:text-zinc-200 opacity-0 group-hover/tc-block:opacity-100 transition-opacity duration-150"
+      title={wrap ? 'No wrap' : 'Word wrap'}
+      aria-label="Toggle word wrap"
+      type="button"
+    >
+      {wrap ? <AlignLeft className="h-3 w-3" /> : <WrapText className="h-3 w-3" />}
+    </button>
+  );
+}
+
 /** Small copy-to-clipboard button for tool call content blocks. */
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -133,17 +148,18 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export function HighlightedPre({ text, className }: { text: string; className: string }) {
+export function HighlightedPre({ text, className, wrap }: { text: string; className: string; wrap?: boolean }) {
   const highlighted = useMemo(() => highlightCode(text), [text]);
+  const wrapClass = wrap ? 'whitespace-pre-wrap break-words overflow-x-hidden' : '';
 
   if (highlighted) {
     return (
-      <pre className={className}>
+      <pre className={`${className} ${wrapClass}`}>
         <code className="hljs" dangerouslySetInnerHTML={{ __html: highlighted }} />
       </pre>
     );
   }
-  return <pre className={className}>{text}</pre>;
+  return <pre className={`${className} ${wrapClass}`}>{text}</pre>;
 }
 
 function str(v: unknown): string | null {
@@ -218,6 +234,7 @@ function extractImageFromResult(result: string): { src: string; remaining: strin
 export function ToolCall({ name, input, result }: { name: string; input?: Record<string, unknown>; result?: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [wrap, setWrap] = useState(true);
   const { globalState, version } = useToolCollapse();
   const lastVersion = useRef(version);
   const c = getColor(name);
@@ -264,7 +281,9 @@ export function ToolCall({ name, input, result }: { name: string; input?: Record
                 <HighlightedPre
                   text={inputStr}
                   className="text-xs bg-[#1a1a20]/60 border border-white/5 p-2.5 rounded-xl overflow-x-auto text-zinc-300 font-mono"
+                  wrap={wrap}
                 />
+                <WrapToggle wrap={wrap} onToggle={() => setWrap(!wrap)} />
                 <CopyButton text={inputStr} />
               </div>
             </div>
@@ -281,7 +300,9 @@ export function ToolCall({ name, input, result }: { name: string; input?: Record
                         <HighlightedPre
                           text={imageData.remaining}
                           className="text-xs bg-[#1a1a20]/60 border border-white/5 p-2.5 rounded-xl overflow-x-auto text-zinc-300 font-mono mb-2"
+                          wrap={wrap}
                         />
+                        <WrapToggle wrap={wrap} onToggle={() => setWrap(!wrap)} />
                         <CopyButton text={imageData.remaining} />
                       </div>
                     )}
@@ -292,7 +313,9 @@ export function ToolCall({ name, input, result }: { name: string; input?: Record
                     <HighlightedPre
                       text={result}
                       className="text-xs bg-[#1a1a20]/60 border border-white/5 p-2.5 rounded-xl overflow-x-auto text-zinc-300 max-h-64 overflow-y-auto font-mono"
+                      wrap={wrap}
                     />
+                    <WrapToggle wrap={wrap} onToggle={() => setWrap(!wrap)} />
                     <CopyButton text={result} />
                   </div>
                 )}
