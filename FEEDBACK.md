@@ -213,10 +213,24 @@
 ## Item #25
 - **Date:** 2026-02-12
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-12 — commit `1465ae1`
 - **Description:** Move model badge from header to left of token progress bar
 - **Details:**
   - Currently the model chip is in the navbar/header — too cramped on mobile
   - Move it to the left of the token usage progress bar instead
   - Should be subtle, same style as surrounding elements
   - Remove it from the header entirely
+
+## Item #26
+- **Date:** 2026-02-12
+- **Priority:** high
+- **Status:** pending
+- **Description:** Mobile viewport overflow — conversation clipped on left and right edges on iPhone
+- **Details:**
+  - On iPhone, the chat messages are slightly clipped on both sides, requiring the user to pinch-zoom out
+  - Likely a viewport/padding/overflow issue — check meta viewport tag, body/container width, and message padding
+  - Ensure `<meta name="viewport" content="width=device-width, initial-scale=1">` is correct
+  - Check for any elements with fixed widths or horizontal overflow (code blocks, tool calls, long URLs)
+  - Test with responsive dev tools at 375px width (iPhone SE) and 390px (iPhone 14)
+  - May need `overflow-x: hidden` on the main container or `max-width: 100vw` adjustments
