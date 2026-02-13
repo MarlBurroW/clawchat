@@ -4,6 +4,12 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.36.1] — 2026-02-13
+
+### Fixed
+- Sync `<html lang>` attribute with i18n locale selection for better screen reader and browser language support
+- Remove duplicate `aria-label` on message search input
+
 ## [1.36.0] — 2026-02-13
 
 ### Added
