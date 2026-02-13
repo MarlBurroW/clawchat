@@ -4,6 +4,13 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.28.1] — 2026-02-13
+### Fixed
+- Docker: added security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy)
+- Docker: index.html is no longer cached, ensuring SPA updates are always picked up after redeploy
+### Changed
+- Added `engines` field (`node >=18`) and `lint:fix` npm script to package.json
+
 ## [1.28.0] — 2026-02-13
 ### Added
 - Multi-tab split view — open 2 sessions side by side with a resizable divider
