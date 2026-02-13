@@ -338,6 +338,7 @@ function RawJsonPanel({ message }: { message: ChatMessageType }) {
           onClick={handleCopy}
           className="h-6 w-6 rounded-md flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light transition-colors"
           title={copied ? t('message.copied') : t('message.copy')}
+          aria-label={copied ? t('message.copied') : t('message.copy')}
         >
           {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
         </button>

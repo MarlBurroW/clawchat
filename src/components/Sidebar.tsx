@@ -181,7 +181,7 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
             </div>
             <span className="font-semibold text-sm text-pc-text tracking-wide">{t('sidebar.title')}</span>
           </div>
-          <button onClick={onClose} className="lg:hidden p-1.5 rounded-xl hover:bg-[var(--pc-hover)] text-pc-text-secondary transition-colors">
+          <button onClick={onClose} className="lg:hidden p-1.5 rounded-xl hover:bg-[var(--pc-hover)] text-pc-text-secondary transition-colors" aria-label={t('sidebar.close')}>
             <X size={16} />
           </button>
         </div>
@@ -204,6 +204,7 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
                 <button
                   onClick={() => updateFilter('')}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-pc-text-muted hover:text-pc-text"
+                  aria-label={t('sidebar.clearSearch')}
                 >
                   <X size={12} />
                 </button>
