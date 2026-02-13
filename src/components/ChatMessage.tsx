@@ -36,6 +36,34 @@ function formatTimestamp(ts: number): string {
   return `${date.toLocaleDateString(bcp47Locale, { day: 'numeric', month: 'short' })} ${time}`;
 }
 
+/** Full date+time string for tooltip on hover (e.g. "Friday, February 13, 2026 at 3:39:12 PM") */
+function formatFullTimestamp(ts: number): string {
+  const bcp47Locale = getBcp47();
+  const date = new Date(ts);
+  return date.toLocaleString(bcp47Locale, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+}
+
+/** Render a timestamp as a semantic <time> element with a full-date tooltip on hover */
+function Timestamp({ ts, className }: { ts: number; className?: string }) {
+  return (
+    <time
+      dateTime={new Date(ts).toISOString()}
+      title={formatFullTimestamp(ts)}
+      className={className}
+    >
+      {formatTimestamp(ts)}
+    </time>
+  );
+}
+
 /** Guess a language hint from content patterns */
 function guessLanguage(lines: string[]): string {
   const joined = lines.join('\n');
@@ -226,7 +254,7 @@ function InternalOnlyMessage({ message }: { message: ChatMessageType }) {
         </div>
         {message.timestamp && (
           <div className="mt-0.5 text-[10px] text-pc-text-faint">
-            {formatTimestamp(message.timestamp)}
+            <Timestamp ts={message.timestamp} />
           </div>
         )}
       </div>
@@ -370,7 +398,7 @@ function SystemEventMessage({ message }: { message: ChatMessageType }) {
         <span className="text-[11px] font-medium text-pc-text-muted shrink-0">{label}</span>
         <span className="text-[11px] text-pc-text-muted truncate">{display}</span>
         {message.timestamp && (
-          <span className="text-[10px] text-pc-text-faint shrink-0 ml-1">{formatTimestamp(message.timestamp)}</span>
+          <Timestamp ts={message.timestamp} className="text-[10px] text-pc-text-faint shrink-0 ml-1" />
         )}
       </div>
     </div>
@@ -510,7 +538,7 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
                 <span>webhook</span>
               </span>
             )}
-            {message.timestamp && formatTimestamp(message.timestamp)}
+            {message.timestamp && <Timestamp ts={message.timestamp} />}
             {isUser && message.sendStatus === 'sending' && (
               <span title="Sending..."><Clock size={10} className="animate-pulse text-pc-text-faint" /></span>
             )}
