@@ -664,3 +664,10 @@
 - **Status:** done
 - **Completed:** 2026-02-13 — commit `cbb4611`
 - **Description:** Markdown unordered lists (- item, * item) are not rendered properly in chat messages. They appear as raw text instead of formatted bullet points. Need to verify remarkGfm/ReactMarkdown config handles list rendering correctly, and ensure CSS styles are applied for ul/ol elements in the markdown-body class.
+
+## Item #62
+- **Date:** 2026-02-13
+- **Priority:** high
+- **Status:** done
+- **Completed:** 2026-02-13 — commit `2f25c45`
+- **Description:** Textarea has an ugly/thick accent-colored border (cyan) visible in the screenshot. The border around the chat input textarea looks bad — it should be more subtle (thin border, muted color, or no visible border at all). The input area should blend cleanly with its container, not have a glowing cyan outline.

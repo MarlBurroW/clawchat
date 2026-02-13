@@ -119,10 +119,14 @@ export function Chat({ messages, isGenerating, isLoadingHistory, status, session
 
   const visibleMessages = useMemo(() => {
     const filtered = messages.filter(hasVisibleContent);
-    return filtered.reduce<Array<{ msg: ChatMessage; showSep: boolean }>>((acc, msg) => {
+    const GROUP_GAP_MS = 2 * 60 * 1000; // 2 minutes
+    return filtered.reduce<Array<{ msg: ChatMessage; showSep: boolean; isFirstInGroup: boolean }>>((acc, msg) => {
       const dk = getDateKey(msg.timestamp);
       const prevDk = acc.length > 0 ? getDateKey(acc[acc.length - 1].msg.timestamp) : '';
-      acc.push({ msg, showSep: dk !== prevDk });
+      const showSep = dk !== prevDk;
+      const prev = acc.length > 0 ? acc[acc.length - 1] : null;
+      const isFirstInGroup = showSep || !prev || prev.msg.role !== msg.role || prev.msg.isSystemEvent !== msg.isSystemEvent || (msg.timestamp - prev.msg.timestamp > GROUP_GAP_MS);
+      acc.push({ msg, showSep, isFirstInGroup });
       return acc;
     }, []);
   }, [messages]);
@@ -207,7 +211,7 @@ export function Chat({ messages, isGenerating, isLoadingHistory, status, session
               <div className="text-sm mt-1 text-pc-text-muted">{t('chat.welcomeSub')}</div>
             </div>
           )}
-          {visibleMessages.map(({ msg, showSep }) => {
+          {visibleMessages.map(({ msg, showSep, isFirstInGroup }) => {
             const isActiveMatch = searchMatches.length > 0 && searchMatches[searchActiveIndex] === msg.id;
             return (
                 <div key={msg.id} data-msg-id={msg.id}>
@@ -219,7 +223,7 @@ export function Chat({ messages, isGenerating, isLoadingHistory, status, session
                     </div>
                   )}
                   <div className={isActiveMatch ? 'ring-1 ring-pc-accent-light/40 rounded-lg' : ''}>
-                    <ChatMessageComponent message={msg} onRetry={!isGenerating ? handleSend : undefined} agentAvatarUrl={agentAvatarUrl} />
+                    <ChatMessageComponent message={msg} onRetry={!isGenerating ? handleSend : undefined} agentAvatarUrl={agentAvatarUrl} isFirstInGroup={isFirstInGroup} />
                   </div>
                 </div>
             );

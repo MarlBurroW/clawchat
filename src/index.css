@@ -52,6 +52,14 @@
   outline-offset: 2px;
 }
 
+/* Chat textarea: no focus ring (container handles visual feedback) */
+.ht-textarea:focus-visible,
+.ht-textarea:focus,
+#chat-input:focus-visible,
+#chat-input:focus {
+  outline: none;
+}
+
 /* Remove default outline for mouse/touch users */
 :focus:not(:focus-visible) {
   outline: none;

@@ -405,7 +405,7 @@ function SystemEventMessage({ message }: { message: ChatMessageType }) {
   );
 }
 
-export const ChatMessageComponent = memo(function ChatMessageComponent({ message: rawMessage, onRetry, agentAvatarUrl }: { message: ChatMessageType; onRetry?: (text: string) => void; agentAvatarUrl?: string }) {
+export const ChatMessageComponent = memo(function ChatMessageComponent({ message: rawMessage, onRetry, agentAvatarUrl, isFirstInGroup = true }: { message: ChatMessageType; onRetry?: (text: string) => void; agentAvatarUrl?: string; isFirstInGroup?: boolean }) {
   useLocale(); // re-render on locale change
   const { resolvedTheme } = useTheme();
   const isLight = resolvedTheme === 'light';
@@ -458,15 +458,16 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
   }
 
   return (
-    <div className={`animate-fade-in flex gap-3 px-4 py-2 ${isUser ? 'flex-row-reverse' : ''} ${message.sendStatus === 'sending' ? 'opacity-70' : ''} ${message.sendStatus === 'error' ? 'opacity-60' : ''}`}>
-      {/* Avatar */}
-      <div className="shrink-0 mt-1 flex h-9 w-9 items-center justify-center rounded-2xl border border-pc-border bg-pc-elevated/40 overflow-hidden">
-        {isUser
-          ? <User className="h-4 w-4 text-pc-accent-light" />
-          : agentAvatarUrl
-            ? <img src={agentAvatarUrl} alt="Agent" className="h-full w-full object-cover" />
-            : <Bot className="h-4 w-4 text-pc-accent-light" />
-        }
+    <div className={`animate-fade-in flex gap-3 px-4 ${isFirstInGroup ? 'py-2' : 'py-0.5'} ${isUser ? 'flex-row-reverse' : ''} ${message.sendStatus === 'sending' ? 'opacity-70' : ''} ${message.sendStatus === 'error' ? 'opacity-60' : ''}`}>
+      {/* Avatar — hidden for grouped messages, but keep width for alignment */}
+      <div className={`shrink-0 mt-1 flex h-9 w-9 items-center justify-center rounded-2xl overflow-hidden ${isFirstInGroup ? 'border border-pc-border bg-pc-elevated/40' : ''}`}>
+        {isFirstInGroup ? (
+          isUser
+            ? <User className="h-4 w-4 text-pc-accent-light" />
+            : agentAvatarUrl
+              ? <img src={agentAvatarUrl} alt="Agent" className="h-full w-full object-cover" />
+              : <Bot className="h-4 w-4 text-pc-accent-light" />
+        ) : null}
       </div>
 
       {/* Bubble */}
