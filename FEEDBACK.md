@@ -661,5 +661,5 @@
 ## Item #61
 - **Date:** 2026-02-13
 - **Priority:** medium
-- **Status:** pending
+- **Status:** in-progress
 - **Description:** Markdown unordered lists (- item, * item) are not rendered properly in chat messages. They appear as raw text instead of formatted bullet points. Need to verify remarkGfm/ReactMarkdown config handles list rendering correctly, and ensure CSS styles are applied for ul/ol elements in the markdown-body class.
