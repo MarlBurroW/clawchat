@@ -315,7 +315,7 @@ export function ChatInput({ onSend, onAbort, isGenerating, disabled, sessionKey 
               aria-label={t('chat.inputLabel')}
               disabled={disabled}
               rows={1}
-              className="flex-1 bg-transparent resize-none rounded-2xl border-none px-4 py-3 text-sm text-pc-text placeholder:text-pc-text-muted outline-none transition-all max-h-[200px]"
+              className="flex-1 bg-transparent resize-none rounded-2xl border border-pc-border bg-pc-input/35 px-4 py-3 text-sm text-pc-text placeholder:text-pc-text-muted outline-none transition-all max-h-[200px]"
             />
             {isGenerating ? (
               <button
