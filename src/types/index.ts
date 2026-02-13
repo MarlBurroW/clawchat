@@ -10,6 +10,10 @@ export interface ChatMessage {
   metadata?: Record<string, unknown>;
   /** Optimistic send status for user messages */
   sendStatus?: 'sending' | 'sent' | 'error';
+  /** Timestamp (ms) when streaming started for this message */
+  streamStartedAt?: number;
+  /** Total generation time in milliseconds (set when streaming ends) */
+  generationTimeMs?: number;
 }
 
 export type MessageBlock =

@@ -54,6 +54,8 @@ export function useGateway() {
   const [activeSessions, setActiveSessions] = useState<Set<string>>(new Set());
   const [unreadSessions, setUnreadSessions] = useState<Set<string>>(new Set());
   const [agentIdentity, setAgentIdentity] = useState<AgentIdentity | null>(null);
+  /** Map of runId → generation duration (ms), preserved across loadHistory reloads */
+  const generationTimesRef = useRef<Map<string, number>>(new Map());
 
   const handleAgentEvent = useCallback((payload: JsonPayload) => {
     if (payload?.stream !== 'tool') return;
@@ -228,6 +230,18 @@ export function useGateway() {
             merged.push(msg);
           }
         }
+        // Apply stored generation time to the last assistant message if available
+        const genKey = sessionKey + ':latest';
+        const genTime = generationTimesRef.current.get(genKey);
+        if (genTime) {
+          generationTimesRef.current.delete(genKey);
+          for (let i = merged.length - 1; i >= 0; i--) {
+            if (merged[i].role === 'assistant') {
+              merged[i] = { ...merged[i], generationTimeMs: genTime };
+              break;
+            }
+          }
+        }
         setMessages(merged);
       }
     } catch {
@@ -342,10 +356,16 @@ export function useGateway() {
             blocks,
             isStreaming: true,
             runId,
+            streamStartedAt: Date.now(),
           };
           return [...prev, msg];
         });
       } else if (state === 'final') {
+        // Compute generation time from the streaming message before history reload replaces it
+        const lastMsg = messagesRef.current[messagesRef.current.length - 1];
+        if (lastMsg?.role === 'assistant' && lastMsg.streamStartedAt) {
+          generationTimesRef.current.set(activeSessionRef.current + ':latest', Date.now() - lastMsg.streamStartedAt);
+        }
         currentRunIdRef.current = null;
         setIsGenerating(false);
         loadHistory(activeSessionRef.current);

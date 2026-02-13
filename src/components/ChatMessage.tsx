@@ -539,6 +539,13 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
               </span>
             )}
             {message.timestamp && <Timestamp ts={message.timestamp} />}
+            {!isUser && message.generationTimeMs != null && (
+              <span className="text-[10px] text-pc-text-faint" title="Generation time">
+                · {message.generationTimeMs < 1000
+                  ? `${message.generationTimeMs}ms`
+                  : `${(message.generationTimeMs / 1000).toFixed(1)}s`}
+              </span>
+            )}
             {isUser && message.sendStatus === 'sending' && (
               <span title="Sending..."><Clock size={10} className="animate-pulse text-pc-text-faint" /></span>
             )}
