@@ -276,19 +276,19 @@ export function ChatInput({ onSend, onAbort, isGenerating, disabled, sessionKey 
             >
               <Paperclip size={18} />
             </button>
-            {/* Markdown preview toggle */}
+            {/* Markdown preview toggle — hidden on mobile */}
             <button
               onClick={() => setShowPreview(v => { const next = !v; localStorage.setItem('pinchchat-md-preview', next ? '1' : '0'); return next; })}
-              className={`shrink-0 h-11 w-11 rounded-2xl border border-pc-border bg-pc-elevated/30 flex items-center justify-center transition-colors ${showPreview ? 'text-pc-accent-light bg-[var(--pc-accent-glow)]' : 'text-pc-text-secondary hover:text-pc-accent-light hover:bg-[var(--pc-hover)]'}`}
+              className={`hidden sm:flex shrink-0 h-11 w-11 rounded-2xl border border-pc-border bg-pc-elevated/30 items-center justify-center transition-colors ${showPreview ? 'text-pc-accent-light bg-[var(--pc-accent-glow)]' : 'text-pc-text-secondary hover:text-pc-accent-light hover:bg-[var(--pc-hover)]'}`}
               title={showPreview ? t('chat.hidePreview') : t('chat.showPreview')}
               aria-label={showPreview ? t('chat.hidePreview') : t('chat.showPreview')}
             >
               {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-            {/* Syntax highlight toggle */}
+            {/* Syntax highlight toggle — hidden on mobile */}
             <button
               onClick={() => setHighlightEnabled(v => { const next = !v; localStorage.setItem('pinchchat-syntax-hl', next ? '1' : '0'); return next; })}
-              className={`shrink-0 h-11 w-11 rounded-2xl border border-pc-border bg-pc-elevated/30 flex items-center justify-center transition-colors ${highlightEnabled ? 'text-pc-accent-light bg-[var(--pc-accent-glow)]' : 'text-pc-text-secondary hover:text-pc-accent-light hover:bg-[var(--pc-hover)]'}`}
+              className={`hidden sm:flex shrink-0 h-11 w-11 rounded-2xl border border-pc-border bg-pc-elevated/30 items-center justify-center transition-colors ${highlightEnabled ? 'text-pc-accent-light bg-[var(--pc-accent-glow)]' : 'text-pc-text-secondary hover:text-pc-accent-light hover:bg-[var(--pc-hover)]'}`}
               title={highlightEnabled ? 'Disable syntax highlight' : 'Enable syntax highlight'}
               aria-label={highlightEnabled ? 'Disable syntax highlight' : 'Enable syntax highlight'}
             >
