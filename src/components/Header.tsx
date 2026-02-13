@@ -38,7 +38,7 @@ export function Header({ status, sessionKey, onToggleSidebar, activeSessionData,
         <Menu size={20} />
       </button>
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <img src={agentAvatarUrl || '/logo.png'} alt="PinchChat" className="h-9 w-9 rounded-2xl object-cover" />
+        <img src={agentAvatarUrl || '/logo.png'} alt="PinchChat" className="h-9 w-9 rounded-2xl object-cover" onError={(e) => { const img = e.target as HTMLImageElement; if (img.src !== window.location.origin + '/logo.png') { img.src = '/logo.png'; } else { img.style.display = 'none'; } }} />
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-pc-text text-sm tracking-wide">{t('header.title')}</span>
