@@ -185,6 +185,8 @@ html, body {
 .ht-container {
   position: relative;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .ht-backdrop,
@@ -215,6 +217,7 @@ html, body {
 
 .ht-textarea {
   position: relative;
+  width: 100%;
   color: transparent;
   caret-color: var(--pc-text-primary);
   background: transparent !important;
