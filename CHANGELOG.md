@@ -4,6 +4,10 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.28.2] — 2026-02-13
+### Fixed
+- Resolved all 3 ESLint warnings (react-hooks/set-state-in-effect) — lint now passes with 0 errors and 0 warnings
+
 ## [1.28.1] — 2026-02-13
 ### Fixed
 - Docker: added security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy)
