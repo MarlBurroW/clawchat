@@ -615,7 +615,8 @@
 ## Item #58
 - **Date:** 2026-02-13
 - **Priority:** high
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-13 — commit `73a46f3`
 - **Description:** Fix CI lint errors blocking ALL release workflows since v1.14.0
   - 4 ESLint errors cause every release.yml run to fail:
   1. ThemeContext.tsx: exports useTheme hook alongside Provider component → react-refresh/only-export-components. Fix: move useTheme to a separate file or use eslint-disable.
