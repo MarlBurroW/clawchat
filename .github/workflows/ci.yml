@@ -31,6 +31,15 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Test coverage
+        if: matrix.node-version == 22
+        run: |
+          npm run test:coverage
+          echo "## Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm run test:coverage 2>&1 | grep -A20 'Coverage report' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
       - name: Type check
         run: npx tsc --noEmit
 
