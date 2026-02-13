@@ -74,6 +74,10 @@ When filing an issue, please include:
 - Functional React components with hooks
 - Keep components focused and small
 
+## Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
