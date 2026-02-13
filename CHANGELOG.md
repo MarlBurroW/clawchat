@@ -4,6 +4,10 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.26.0] — 2026-02-13
+### Added
+- Drag & drop session reordering in sidebar — custom order persists in localStorage, works within pinned/unpinned groups
+
 ## [1.24.0] — 2026-02-13
 ### Added
 - Raw JSON viewer toggle on each message — hover to reveal `{⁠}` button, click to show full gateway payload as formatted JSON with copy support

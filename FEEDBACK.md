@@ -599,7 +599,8 @@
 ## Item #56
 - **Date:** 2026-02-12
 - **Priority:** medium
-- **Status:** pending
+- **Status:** done
+- **Completed:** 2026-02-13 — commit `35652ea`
 - **Source:** Josh (Bardak)
 - **Description:** Drag & drop session reordering in sidebar
   - Allow users to drag sessions to reorder them manually in the sidebar
