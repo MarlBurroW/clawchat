@@ -4,6 +4,13 @@ All notable changes to PinchChat are documented here.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/), with [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.28.0] — 2026-02-13
+### Added
+- Multi-tab split view — open 2 sessions side by side with a resizable divider
+- Split view button in sidebar session actions (columns icon)
+- Secondary pane supports full chat: history, streaming, sending, aborting
+- Divider width persisted in localStorage
+
 ## [1.27.0] — 2026-02-13
 ### Added
 - Syntax highlighting in chat input textarea — real-time markdown coloring (code blocks, inline code, bold, italic, headings, links) using transparent overlay technique
