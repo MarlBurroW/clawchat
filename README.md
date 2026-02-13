@@ -7,7 +7,7 @@
 [![CI](https://github.com/MarlBurroW/pinchchat/actions/workflows/ci.yml/badge.svg)](https://github.com/MarlBurroW/pinchchat/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/MarlBurroW/pinchchat?color=cyan)](https://github.com/MarlBurroW/pinchchat/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen-brightgreen)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/MarlBurroW/pinchchat/pkgs/container/pinchchat)
 [![GitHub Stars](https://img.shields.io/github/stars/MarlBurroW/pinchchat?style=social)](https://github.com/MarlBurroW/pinchchat)
 [![Website](https://img.shields.io/badge/website-GitHub%20Pages-blueviolet)](https://marlburrow.github.io/pinchchat/)
@@ -60,7 +60,7 @@ docker compose up -d
 
 ### From source
 
-**Prerequisites:** Node.js 18+, an OpenClaw gateway running and accessible.
+**Prerequisites:** Node.js 20+, an OpenClaw gateway running and accessible.
 
 ```bash
 git clone https://github.com/MarlBurroW/pinchchat.git
@@ -271,7 +271,7 @@ Reload the page. All WebSocket frames (sent and received) will be logged to the 
 ### Build errors from source
 
 ```bash
-# Ensure Node.js 18+
+# Ensure Node.js 20+
 node --version
 # Clean install
 rm -rf node_modules package-lock.json
