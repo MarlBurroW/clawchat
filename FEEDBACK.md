@@ -759,7 +759,8 @@
 ## Item #69
 - **Date:** 2026-02-14
 - **Priority:** medium
-- **Status:** open
+- **Status:** done
+- **Completed:** 2026-02-14 — commit `70d29dc`, tagged `v1.47.0`
 - **Source:** Josh (Bardak)
 - **Description:** Display the agent/assistant name somewhere in the UI (header, sidebar, or chat). The name is available in OpenClaw config at `ui.assistant.name` (e.g. "Marlbot"). Currently there's no indication of who the agent is — should be visible, especially for multi-agent setups. Could also show the avatar if `ui.assistant.avatar` is set. **Important:** these fields are optional and most users won't set them — always have a sensible fallback (e.g. "Assistant" + default robot icon) when `ui.assistant.name` / `ui.assistant.avatar` are absent.
 
@@ -782,6 +783,7 @@
 ## Item #72
 - **Date:** 2026-02-14
 - **Priority:** high
-- **Status:** open
+- **Status:** done
+- **Completed:** 2026-02-14 — commit `70d29dc`, tagged `v1.47.0`
 - **Source:** Josh (Bardak)
 - **Description:** After OpenClaw compaction, all previous messages disappear from the chat UI. This is a bad UX — the user loses their message history visually even though the conversation continues. Ideally PinchChat should keep a local cache/history of previous messages (IndexedDB or localStorage) so the user can still scroll back and see/copy-paste old messages even after compaction. The compaction boundary could be shown with a visual separator ("— context compacted —") but old messages should remain visible above it. This is critical for usability — users need to be able to reference what they said earlier.
