@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { Menu, Sparkles, LogOut, Volume2, VolumeOff, Cpu, Bot, Download, Minimize2 } from 'lucide-react';
+import { useCallback, useState, useRef, useEffect } from 'react';
+import { Menu, Sparkles, LogOut, Volume2, VolumeOff, Cpu, Bot, Download, Minimize2, Info, Copy, Check } from 'lucide-react';
 import type { ConnectionStatus, Session, ChatMessage } from '../types';
 import { useT } from '../hooks/useLocale';
 import { LanguageSelector } from './LanguageSelector';
@@ -24,6 +24,20 @@ interface Props {
 export function Header({ status, sessionKey, onToggleSidebar, activeSessionData, onLogout, soundEnabled, onToggleSound, messages, agentAvatarUrl, agentName, onCompact }: Props) {
   const t = useT();
   const sessionLabel = activeSessionData ? sessionDisplayName(activeSessionData) : (sessionKey.split(':').pop() || sessionKey);
+  const [showSessionInfo, setShowSessionInfo] = useState(false);
+  const sessionInfoRef = useRef<HTMLDivElement>(null);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!showSessionInfo) return;
+    const handler = (e: MouseEvent) => {
+      if (sessionInfoRef.current && !sessionInfoRef.current.contains(e.target as Node)) {
+        setShowSessionInfo(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showSessionInfo]);
 
   const handleExport = useCallback(() => {
     if (!messages || messages.length === 0) return;
@@ -39,9 +53,9 @@ export function Header({ status, sessionKey, onToggleSidebar, activeSessionData,
       <button onClick={onToggleSidebar} aria-label={t('header.toggleSidebar')} className="lg:hidden p-2 rounded-2xl hover:bg-[var(--pc-hover)] text-pc-text-secondary transition-colors">
         <Menu size={20} />
       </button>
-      <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="flex items-center gap-3 flex-1 min-w-0 relative" ref={sessionInfoRef}>
         <img src={agentAvatarUrl || '/logo.png'} alt="PinchChat" className="h-9 w-9 rounded-2xl object-cover" onError={(e) => { const img = e.target as HTMLImageElement; if (img.src !== window.location.origin + '/logo.png') { img.src = '/logo.png'; } else { img.style.display = 'none'; } }} />
-        <div className="min-w-0">
+        <button className="min-w-0 text-left group" onClick={() => setShowSessionInfo(v => !v)} title={t('header.sessionInfo')}>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-pc-text text-sm tracking-wide">{agentName || t('header.title')}</span>
             <Sparkles className="h-3.5 w-3.5 text-pc-accent-light/60" />
@@ -55,8 +69,12 @@ export function Header({ status, sessionKey, onToggleSidebar, activeSessionData,
               </span>
             )}
             {sessionLabel}
+            <Info className="h-3 w-3 text-pc-text-faint opacity-0 group-hover:opacity-100 transition-opacity" />
           </span>
-        </div>
+        </button>
+        {showSessionInfo && activeSessionData && (
+          <SessionInfoPopover session={activeSessionData} sessionKey={sessionKey} messageCount={messages?.length ?? 0} onClose={() => setShowSessionInfo(false)} />
+        )}
       </div>
       <div className="flex items-center gap-2 text-sm">
         {onToggleSound && (
@@ -137,6 +155,62 @@ export function Header({ status, sessionKey, onToggleSidebar, activeSessionData,
         );
       })()}
     </>
+  );
+}
+
+function CopyField({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      className="ml-auto p-0.5 rounded hover:bg-[var(--pc-hover)] text-pc-text-faint hover:text-pc-text-secondary transition-colors"
+      onClick={() => { navigator.clipboard.writeText(value).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }); }}
+      title="Copy"
+    >
+      {copied ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+    </button>
+  );
+}
+
+function SessionInfoPopover({ session, sessionKey, messageCount, onClose }: { session: Session; sessionKey: string; messageCount: number; onClose: () => void }) {
+  const t = useT();
+  const rows: Array<{ label: string; value: string; copyable?: boolean }> = [
+    { label: t('sessionInfo.sessionKey'), value: sessionKey, copyable: true },
+  ];
+  if (session.channel) rows.push({ label: t('sessionInfo.channel'), value: session.channel });
+  if (session.kind) rows.push({ label: t('sessionInfo.kind'), value: session.kind });
+  if (session.model) rows.push({ label: t('sessionInfo.model'), value: session.model.replace(/^.*\//, '') });
+  if (session.agentId) rows.push({ label: t('sessionInfo.agent'), value: session.agentId });
+  rows.push({ label: t('sessionInfo.messages'), value: String(messageCount) });
+  if (session.totalTokens) {
+    rows.push({ label: t('sessionInfo.totalTokens'), value: `${(session.totalTokens / 1000).toFixed(1)}k` });
+    if (session.inputTokens) rows.push({ label: t('sessionInfo.inputTokens'), value: `${(session.inputTokens / 1000).toFixed(1)}k` });
+    if (session.outputTokens) rows.push({ label: t('sessionInfo.outputTokens'), value: `${(session.outputTokens / 1000).toFixed(1)}k` });
+    if (session.contextTokens) rows.push({ label: t('sessionInfo.contextWindow'), value: `${(session.contextTokens / 1000).toFixed(0)}k` });
+  }
+  if (session.updatedAt) {
+    rows.push({ label: t('sessionInfo.lastActive'), value: new Date(session.updatedAt).toLocaleString() });
+  }
+
+  return (
+    <div
+      className="absolute top-full left-0 mt-2 z-50 w-72 rounded-xl border border-pc-border bg-[var(--pc-bg-surface)] shadow-xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200"
+      role="dialog"
+      aria-label={t('header.sessionInfo')}
+    >
+      <div className="p-3 border-b border-pc-border flex items-center justify-between">
+        <span className="text-xs font-semibold text-pc-text">{t('header.sessionInfo')}</span>
+        <button onClick={onClose} className="text-pc-text-faint hover:text-pc-text text-xs">✕</button>
+      </div>
+      <div className="p-3 space-y-2">
+        {rows.map(({ label, value, copyable }) => (
+          <div key={label} className="flex items-start gap-2 text-[11px]">
+            <span className="text-pc-text-muted shrink-0 w-20">{label}</span>
+            <span className="text-pc-text-secondary break-all flex-1 font-mono">{value}</span>
+            {copyable && <CopyField value={value} />}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
