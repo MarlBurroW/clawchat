@@ -147,6 +147,7 @@ const en = {
   'message.bookmark': 'Bookmark message',
   'message.removeBookmark': 'Remove bookmark',
   'chat.bookmarks': 'Bookmarks',
+  'chat.export': 'Export conversation',
   'chat.contextCompacted': 'Context compacted — older messages cached locally',
 } as const;
 
@@ -274,6 +275,7 @@ const fr: Record<keyof typeof en, string> = {
   'message.bookmark': 'Marquer le message',
   'message.removeBookmark': 'Retirer le marque-page',
   'chat.bookmarks': 'Marque-pages',
+  'chat.export': 'Exporter la conversation',
   'chat.contextCompacted': 'Contexte compacté — anciens messages en cache local',
 };
 
