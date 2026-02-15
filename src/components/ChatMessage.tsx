@@ -10,7 +10,7 @@ import { CodeBlock } from './CodeBlock';
 import { ToolCall } from './ToolCall';
 import { ImageBlock } from './ImageBlock';
 import { buildImageSrc } from '../lib/image';
-import { Bot, User, Wrench, Copy, Check, CheckCheck, RefreshCw, Zap, Info, Webhook, Braces, Clock, AlertCircle, Bookmark } from 'lucide-react';
+import { Bot, User, Wrench, Copy, Check, CheckCheck, RefreshCw, Zap, Info, Webhook, Braces, Clock, AlertCircle, Bookmark, ChevronDown } from 'lucide-react';
 import { t, getLocale } from '../lib/i18n';
 import { useLocale } from '../hooks/useLocale';
 import { stripWebhookScaffolding, hasWebhookScaffolding } from '../lib/systemEvent';
@@ -198,6 +198,49 @@ function MarkdownLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
 }
 
 const markdownComponents = { pre: CodeBlock, img: MarkdownImage, a: MarkdownLink };
+
+/** Threshold (in characters) above which assistant messages are collapsed by default */
+const COLLAPSE_THRESHOLD = 3000;
+const COLLAPSED_MAX_HEIGHT = 400; // px
+
+/** Wrapper that collapses long content with a gradient fade and "Show more" button */
+function CollapsibleContent({ content, isStreaming, children }: { content: string; isStreaming?: boolean; children: React.ReactNode }) {
+  const [expanded, setExpanded] = useState(false);
+  const shouldCollapse = !isStreaming && content.length > COLLAPSE_THRESHOLD;
+
+  if (!shouldCollapse || expanded) {
+    return (
+      <>
+        {children}
+        {shouldCollapse && expanded && (
+          <button
+            onClick={() => setExpanded(false)}
+            className="mt-2 flex items-center gap-1 text-xs text-pc-accent-light hover:text-pc-accent transition-colors"
+          >
+            <ChevronDown size={12} className="rotate-180" />
+            <span>{t('message.showLess')}</span>
+          </button>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div style={{ maxHeight: `${COLLAPSED_MAX_HEIGHT}px`, overflow: 'hidden' }}>
+        {children}
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--pc-bg-elevated)] to-transparent pointer-events-none" />
+      <button
+        onClick={() => setExpanded(true)}
+        className="relative mt-1 flex items-center gap-1 text-xs text-pc-accent-light hover:text-pc-accent transition-colors"
+      >
+        <ChevronDown size={12} />
+        <span>{t('message.showMore')}</span>
+      </button>
+    </div>
+  );
+}
 
 function renderTextBlocks(blocks: MessageBlock[]) {
   return getTextBlocks(blocks).map((block, i) => (
@@ -516,12 +559,24 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
             </button>
           )}
           {/* User-visible text */}
-          {message.blocks.length > 0 ? renderTextBlocks(message.blocks) : (
-            <div className="markdown-body">
-              <LazyMarkdown components={markdownComponents}>
-                {autoFormatText(message.content)}
-              </LazyMarkdown>
-            </div>
+          {!isUser ? (
+            <CollapsibleContent content={message.content || ''} isStreaming={message.isStreaming}>
+              {message.blocks.length > 0 ? renderTextBlocks(message.blocks) : (
+                <div className="markdown-body">
+                  <LazyMarkdown components={markdownComponents}>
+                    {autoFormatText(message.content)}
+                  </LazyMarkdown>
+                </div>
+              )}
+            </CollapsibleContent>
+          ) : (
+            message.blocks.length > 0 ? renderTextBlocks(message.blocks) : (
+              <div className="markdown-body">
+                <LazyMarkdown components={markdownComponents}>
+                  {autoFormatText(message.content)}
+                </LazyMarkdown>
+              </div>
+            )
           )}
 
           {/* Inline images */}
