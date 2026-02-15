@@ -788,3 +788,15 @@
 - **Completed:** 2026-02-14 — commit `70d29dc`, tagged `v1.47.0`
 - **Source:** Josh (Bardak)
 - **Description:** After OpenClaw compaction, all previous messages disappear from the chat UI. This is a bad UX — the user loses their message history visually even though the conversation continues. Ideally PinchChat should keep a local cache/history of previous messages (IndexedDB or localStorage) so the user can still scroll back and see/copy-paste old messages even after compaction. The compaction boundary could be shown with a visual separator ("— context compacted —") but old messages should remain visible above it. This is critical for usability — users need to be able to reference what they said earlier.
+
+## Item #73
+- **Date:** 2026-02-14
+- **Priority:** medium
+- **Status:** open
+- **Description:** Message action buttons (copy, view source, etc.) are misaligned when hovering over message text. The buttons overlay/overlap the text content incorrectly. They should be properly positioned outside the text area or in a consistent location that doesn't interfere with reading. (Feedback from Bardak, screenshot: https://i.imgur.com/O9CwAix.png)
+
+## Item #74
+- **Date:** 2026-02-14
+- **Priority:** high
+- **Status:** open
+- **Description:** Session deletion doesn't persist — when deleting a session from the sidebar, it disappears visually but comes back on page reload. The deletion is only client-side/cosmetic and doesn't actually delete the session from the OpenClaw backend. Need to call the proper API endpoint to actually delete/archive the session server-side. (Feedback from Bardak)

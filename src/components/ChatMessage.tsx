@@ -281,7 +281,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="absolute top-2 right-2 h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light hover:border-[var(--pc-accent-dim)] transition-all opacity-0 group-hover:opacity-100"
+      className="absolute -top-3 right-2 h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light hover:border-[var(--pc-accent-dim)] transition-all opacity-0 group-hover:opacity-100"
       title={copied ? t('message.copied') : t('message.copy')}
       aria-label={t('message.copy')}
     >
@@ -490,7 +490,7 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
           {!isUser && !message.isStreaming && getPlainText(message).trim() && (
             <CopyButton text={getPlainText(message)} />
           )}
-          <div className={`absolute top-2 ${isUser ? 'left-2' : 'right-10'} flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10`}>
+          <div className={`absolute -top-3 ${isUser ? 'left-2' : 'right-10'} flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10`}>
             {onToggleBookmark && (
               <button
                 onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
@@ -508,7 +508,7 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
           {isUser && onRetry && (
             <button
               onClick={() => onRetry(getPlainText(message))}
-              className={`absolute top-2 right-2 h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light hover:border-[var(--pc-accent-dim)] transition-all ${message.sendStatus === 'error' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              className={`absolute -top-3 right-2 h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light hover:border-[var(--pc-accent-dim)] transition-all ${message.sendStatus === 'error' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
               title={t('message.retry')}
               aria-label={t('message.retry')}
             >
