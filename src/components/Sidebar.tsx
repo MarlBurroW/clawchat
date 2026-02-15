@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { X, Search, Pin, Trash2, Columns2, Clock, Bot, MessageSquare, Globe, Zap, ArrowUpCircle, Download } from 'lucide-react';
+import { X, Search, Pin, Trash2, Columns2, Clock, Bot, MessageSquare, Globe, Zap, ArrowUpCircle, Download, Pencil } from 'lucide-react';
 import type { Session } from '../types';
 import { useT } from '../hooks/useLocale';
 import { SessionIcon } from './SessionIcon';
@@ -64,6 +64,21 @@ const PINNED_KEY = 'pinchchat-pinned-sessions';
 const WIDTH_KEY = 'pinchchat-sidebar-width';
 const ORDER_KEY = 'pinchchat-session-order';
 const FILTER_KEY = 'pinchchat-session-filter';
+const NAMES_KEY = 'pinchchat-session-names';
+
+function getCustomNames(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(NAMES_KEY);
+    if (raw) return JSON.parse(raw) as Record<string, string>;
+  } catch { /* noop */ }
+  return {};
+}
+
+function saveCustomNames(names: Record<string, string>) {
+  try {
+    localStorage.setItem(NAMES_KEY, JSON.stringify(names));
+  } catch { /* noop */ }
+}
 
 /** Detect the category of a session for filtering */
 function sessionCategory(s: Session): string {
@@ -167,6 +182,10 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
   });
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [customNames, setCustomNames] = useState<Record<string, string>>(getCustomNames);
+  const [renamingKey, setRenamingKey] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const renameInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ startX: 0, startW: 0 });
@@ -219,6 +238,44 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
     });
   }, []);
 
+  const startRename = useCallback((key: string, currentName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenamingKey(key);
+    setRenameValue(currentName);
+    // Focus the input after render
+    requestAnimationFrame(() => renameInputRef.current?.focus());
+  }, []);
+
+  const commitRename = useCallback(() => {
+    if (!renamingKey) return;
+    const trimmed = renameValue.trim();
+    setCustomNames(prev => {
+      const next = { ...prev };
+      if (trimmed) {
+        next[renamingKey] = trimmed;
+      } else {
+        delete next[renamingKey];
+      }
+      saveCustomNames(next);
+      return next;
+    });
+    setRenamingKey(null);
+    setRenameValue('');
+  }, [renamingKey, renameValue]);
+
+  const cancelRename = useCallback(() => {
+    setRenamingKey(null);
+    setRenameValue('');
+  }, []);
+
+  // Focus rename input when it appears
+  useEffect(() => {
+    if (renamingKey) {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }
+  }, [renamingKey]);
+
   // Keyboard shortcut: Ctrl+K or Cmd+K to focus search when sidebar is open
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -259,7 +316,7 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
     }
     if (filter.trim()) {
       const q = filter.toLowerCase();
-      list = list.filter(s => sessionDisplayName(s).toLowerCase().includes(q));
+      list = list.filter(s => (customNames[s.key] || sessionDisplayName(s)).toLowerCase().includes(q));
     }
     // Sort pinned sessions to top (preserving relative order within each group)
     const pinnedList = list.filter(s => pinned.has(s.key));
@@ -277,7 +334,7 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
     pinnedList.sort(byCustomThenRecent);
     unpinnedList.sort(byCustomThenRecent);
     return [...pinnedList, ...unpinnedList];
-  }, [sessions, filter, pinned, customOrder, channelFilter]);
+  }, [sessions, filter, pinned, customOrder, channelFilter, customNames]);
 
   return (
     <>
@@ -473,11 +530,42 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">
-                      <span className="flex-1 truncate">{sessionDisplayName(s)}</span>
+                      {renamingKey === s.key ? (
+                        <input
+                          ref={renameInputRef}
+                          type="text"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={commitRename}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') { e.preventDefault(); commitRename(); }
+                            if (e.key === 'Escape') { e.preventDefault(); cancelRename(); }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 min-w-0 bg-[var(--pc-hover)] text-pc-text-primary text-[13px] rounded px-1 py-0 border border-pc-border outline-none focus:ring-1 focus:ring-[var(--pc-accent-dim)]"
+                          maxLength={60}
+                        />
+                      ) : (
+                        <span
+                          className="flex-1 truncate"
+                          onDoubleClick={(e) => startRename(s.key, customNames[s.key] || sessionDisplayName(s), e)}
+                          title={t('sidebar.rename')}
+                        >
+                          {customNames[s.key] || sessionDisplayName(s)}
+                        </span>
+                      )}
                       {(() => {
                         const rel = relativeTime(s.updatedAt);
                         return rel ? <span className="text-[10px] text-pc-text-muted tabular-nums shrink-0">{rel}</span> : null;
                       })()}
+                      <button
+                        onClick={(e) => startRename(s.key, customNames[s.key] || sessionDisplayName(s), e)}
+                        className="shrink-0 p-0.5 rounded-lg transition-all text-pc-text-faint opacity-0 group-hover/item:opacity-60 hover:!opacity-100 hover:text-pc-text-secondary"
+                        title={t('sidebar.rename')}
+                        aria-label={t('sidebar.rename')}
+                      >
+                        <Pencil size={11} />
+                      </button>
                       <button
                         onClick={(e) => togglePin(s.key, e)}
                         className={`shrink-0 p-0.5 rounded-lg transition-all ${
