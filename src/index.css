@@ -259,6 +259,10 @@ html, body {
   text-decoration: underline;
 }
 
+/* Hide scrollbar on horizontal chip rows */
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
 /* Accessibility: respect reduced-motion preferences */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in {

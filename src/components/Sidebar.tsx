@@ -1,14 +1,10 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Search, Pin, Trash2, Columns2 } from 'lucide-react';
-import type { Session } from '../types';
+import { X, Sparkles, Search, Trash2, Columns2, Bot, Plus } from 'lucide-react';
+import type { Session, Agent } from '../types';
 import { useT } from '../hooks/useLocale';
-import { SessionIcon } from './SessionIcon';
-import { sessionDisplayName } from '../lib/sessionName';
 import { relativeTime } from '../lib/relativeTime';
 
-const PINNED_KEY = 'pinchchat-pinned-sessions';
 const WIDTH_KEY = 'pinchchat-sidebar-width';
-const ORDER_KEY = 'pinchchat-session-order';
 const MIN_WIDTH = 220;
 const MAX_WIDTH = 480;
 const DEFAULT_WIDTH = 288; // w-72
@@ -24,36 +20,30 @@ function getSavedWidth(): number {
   return DEFAULT_WIDTH;
 }
 
-function getPinnedSessions(): Set<string> {
-  try {
-    const raw = localStorage.getItem(PINNED_KEY);
-    if (raw) return new Set(JSON.parse(raw) as string[]);
-  } catch { /* noop */ }
-  return new Set();
+/** Shorten model ID to a readable label, e.g. "claude-3-opus" → "opus" */
+function shortModel(model?: string): string | null {
+  if (!model) return null;
+  // Common patterns: "claude-3-opus-20240229", "gpt-4o", "gemini-1.5-pro"
+  const parts = model.split('-');
+  // Try to find a recognizable name segment (opus, sonnet, haiku, gpt, gemini…)
+  const known = ['opus', 'sonnet', 'haiku', 'flash', 'pro', 'nano'];
+  for (const p of parts) {
+    const lower = p.toLowerCase();
+    if (known.includes(lower)) return lower;
+  }
+  // Fallback: last meaningful part
+  return model.length > 16 ? model.slice(0, 14) + '…' : model;
 }
 
-function savePinnedSessions(pinned: Set<string>) {
-  try {
-    localStorage.setItem(PINNED_KEY, JSON.stringify([...pinned]));
-  } catch { /* noop */ }
-}
-
-function getSavedOrder(): string[] {
-  try {
-    const raw = localStorage.getItem(ORDER_KEY);
-    if (raw) return JSON.parse(raw) as string[];
-  } catch { /* noop */ }
-  return [];
-}
-
-function saveOrder(order: string[]) {
-  try {
-    localStorage.setItem(ORDER_KEY, JSON.stringify(order));
-  } catch { /* noop */ }
+interface AgentChat {
+  agent: Agent;
+  session?: Session;
+  key: string;
 }
 
 interface Props {
   sessions: Session[];
+  agents: Agent[];
   activeSession: string;
   onSwitch: (key: string) => void;
   onDelete: (key: string) => void;
@@ -61,19 +51,25 @@ interface Props {
   splitSession?: string | null;
   open: boolean;
   onClose: () => void;
+  onCreateAgent?: (opts: { id: string; name?: string; emoji?: string }) => Promise<void>;
+  onDeleteAgent?: (agentId: string) => Promise<void>;
 }
 
-export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, splitSession, open, onClose }: Props) {
+export function Sidebar({ sessions, agents, activeSession, onSwitch, onDelete, onSplit, splitSession, open, onClose, onCreateAgent, onDeleteAgent }: Props) {
   const t = useT();
   const [filter, setFilter] = useState('');
   const [focusIdx, setFocusIdx] = useState(-1);
-  const [pinned, setPinned] = useState(getPinnedSessions);
   const [width, setWidth] = useState(getSavedWidth);
   const [dragging, setDragging] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [customOrder, setCustomOrder] = useState<string[]>(getSavedOrder);
-  const [dragKey, setDragKey] = useState<string | null>(null);
-  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [showCreateAgent, setShowCreateAgent] = useState(false);
+  const [newAgentId, setNewAgentId] = useState('');
+  const [newAgentName, setNewAgentName] = useState('');
+  const [newAgentEmoji, setNewAgentEmoji] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [confirmDeleteAgent, setConfirmDeleteAgent] = useState<string | null>(null);
+  const [isDeletingAgent, setIsDeletingAgent] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ startX: 0, startW: 0 });
@@ -115,17 +111,6 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
     setDragging(true);
   }, [width]);
 
-  const togglePin = useCallback((key: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPinned(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      savePinnedSessions(next);
-      return next;
-    });
-  }, []);
-
   // Keyboard shortcut: Ctrl+K or Cmd+K to focus search when sidebar is open
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -138,39 +123,82 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Derive active agent id from activeSession key (format: agent:<id>:main)
+  const activeAgentId = useMemo(() => {
+    const m = activeSession.match(/^agent:([^:]+):/);
+    return m ? m[1] : undefined;
+  }, [activeSession]);
+
   const updateFilter = useCallback((value: string) => {
     setFilter(value);
     setFocusIdx(-1);
   }, []);
 
-  const filtered = useMemo(() => {
-    let list = sessions;
-    if (filter.trim()) {
-      const q = filter.toLowerCase();
-      list = sessions.filter(s => sessionDisplayName(s).toLowerCase().includes(q));
+  const handleCreateAgent = useCallback(async () => {
+    const id = newAgentId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-');
+    if (!id || !onCreateAgent) return;
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      await onCreateAgent({ id, name: newAgentName.trim() || undefined, emoji: newAgentEmoji.trim() || undefined });
+      setShowCreateAgent(false);
+      setNewAgentId('');
+      setNewAgentName('');
+      setNewAgentEmoji('');
+      onClose();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message
+        : typeof err === 'string' ? err
+        : 'Failed to create agent';
+      setCreateError(msg);
+    } finally {
+      setIsCreating(false);
     }
-    // Sort pinned sessions to top (preserving relative order within each group)
-    const pinnedList = list.filter(s => pinned.has(s.key));
-    const unpinnedList = list.filter(s => !pinned.has(s.key));
-    // Sort each group: use custom order if set, then fall back to most recently updated
-    const orderMap = new Map(customOrder.map((k, i) => [k, i]));
-    const byCustomThenRecent = (a: Session, b: Session) => {
-      const aIdx = orderMap.get(a.key);
-      const bIdx = orderMap.get(b.key);
-      if (aIdx !== undefined && bIdx !== undefined) return aIdx - bIdx;
-      if (aIdx !== undefined) return -1;
-      if (bIdx !== undefined) return 1;
-      return (b.updatedAt || 0) - (a.updatedAt || 0);
-    };
-    pinnedList.sort(byCustomThenRecent);
-    unpinnedList.sort(byCustomThenRecent);
-    return [...pinnedList, ...unpinnedList];
-  }, [sessions, filter, pinned, customOrder]);
+  }, [newAgentId, newAgentName, newAgentEmoji, onCreateAgent, onClose]);
+
+  // Build the agent chat list: one entry per agent, matched to its best session
+  const agentChats = useMemo((): AgentChat[] => {
+    const sessionsByAgent = new Map<string, Session[]>();
+    for (const s of sessions) {
+      if (!s.agentId) continue;
+      const list = sessionsByAgent.get(s.agentId) || [];
+      list.push(s);
+      sessionsByAgent.set(s.agentId, list);
+    }
+
+    return agents.map(agent => {
+      const agentSessions = sessionsByAgent.get(agent.id) || [];
+      // Session key format: agent:<agentId>:main (maps to ~/.openclaw/agents/<agentId>/sessions/)
+      const canonicalKey = `agent:${agent.id}:main`;
+      let best = agentSessions.find(s => s.key === canonicalKey);
+      // Fallback: most recently updated session for this agent
+      if (!best && agentSessions.length > 0) {
+        best = agentSessions.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+      }
+      return { agent, session: best, key: canonicalKey };
+    }).sort((a, b) => {
+      // Sort by most recently updated (agents with sessions first), then by agent id
+      const aTime = a.session?.updatedAt || 0;
+      const bTime = b.session?.updatedAt || 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return a.agent.id.localeCompare(b.agent.id);
+    });
+  }, [agents, sessions]);
+
+  // Filter agents by name
+  const filtered = useMemo(() => {
+    if (!filter.trim()) return agentChats;
+    const q = filter.toLowerCase();
+    return agentChats.filter(ac => {
+      const name = ac.agent.identity?.name || ac.agent.id;
+      return name.toLowerCase().includes(q);
+    });
+  }, [agentChats, filter]);
 
   return (
     <>
       {open && <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onClick={onClose} />}
-      <aside role="navigation" aria-label="Sessions" className={`fixed lg:relative top-0 left-0 h-full bg-[var(--pc-bg-base)]/95 border-r border-pc-border z-50 transform ${dragging ? '' : 'transition-transform'} lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col backdrop-blur-xl`} style={{ width: `${width}px` }}>
+      <aside role="navigation" aria-label={t('sidebar.title')} className={`fixed lg:relative top-0 left-0 h-full bg-[var(--pc-bg-base)]/95 border-r border-pc-border z-50 transform ${dragging ? '' : 'transition-transform'} lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col backdrop-blur-xl`} style={{ width: `${width}px` }}>
         <div className="h-14 flex items-center justify-between px-4 border-b border-pc-border">
           <div className="flex items-center gap-2">
             <div className="relative">
@@ -181,13 +209,25 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
             </div>
             <span className="font-semibold text-sm text-pc-text tracking-wide">{t('sidebar.title')}</span>
           </div>
-          <button onClick={onClose} className="lg:hidden p-1.5 rounded-xl hover:bg-[var(--pc-hover)] text-pc-text-secondary transition-colors" aria-label={t('sidebar.close')}>
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-1">
+            {onCreateAgent && (
+              <button
+                onClick={() => setShowCreateAgent(true)}
+                className="p-1.5 rounded-xl hover:bg-[var(--pc-hover)] text-pc-text-secondary transition-colors"
+                aria-label={t('sidebar.newAgent')}
+                title={t('sidebar.newAgent')}
+              >
+                <Plus size={16} />
+              </button>
+            )}
+            <button onClick={onClose} className="lg:hidden p-1.5 rounded-xl hover:bg-[var(--pc-hover)] text-pc-text-secondary transition-colors" aria-label={t('sidebar.close')}>
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
-        {/* Session search */}
-        {sessions.length > 3 && (
+        {/* Agent search */}
+        {agents.length > 3 && (
           <div className="px-2 pt-2">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-pc-text-muted" />
@@ -242,147 +282,106 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
             }
           }}
         >
-          {sessions.length === 0 && (
+          {agents.length === 0 && (
             <div className="px-3 py-8 text-center text-pc-text-muted text-sm">{t('sidebar.empty')}</div>
           )}
-          {sessions.length > 0 && filtered.length === 0 && (
+          {agents.length > 0 && filtered.length === 0 && (
             <div className="px-3 py-6 text-center text-pc-text-muted text-xs">{t('sidebar.noResults')}</div>
           )}
-          {filtered.map((s, idx) => {
-            const isActive = s.key === activeSession;
+          {filtered.map((ac, idx) => {
+            const isActive = ac.agent.id === activeAgentId;
             const isFocused = idx === focusIdx;
-            const isPinned = pinned.has(s.key);
-            const isFirstUnpinned = !isPinned && idx > 0 && pinned.has(filtered[idx - 1].key);
-            const isDragged = dragKey === s.key;
-            const isDropTarget = dropTarget === s.key && dragKey !== s.key;
+            const session = ac.session;
+            const isStreaming = session?.isActive;
+            const hasUnread = session?.hasUnread;
+            const displayName = ac.agent.identity?.name || ac.agent.id;
+            const model = shortModel(ac.agent.model || session?.model);
+
             return (
-              <div key={s.key}>
-                {isFirstUnpinned && (
-                  <div className="flex items-center gap-2 px-3 py-1.5 mt-1 mb-1">
-                    <div className="flex-1 h-px bg-[var(--pc-hover)]" />
-                  </div>
-                )}
-                <button
-                  role="option"
-                  aria-selected={isActive}
-                  draggable={!filter.trim()}
-                  onDragStart={(e) => {
-                    setDragKey(s.key);
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', s.key);
-                  }}
-                  onDragEnd={() => { setDragKey(null); setDropTarget(null); }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    if (dragKey && dragKey !== s.key) setDropTarget(s.key);
-                  }}
-                  onDragLeave={() => { if (dropTarget === s.key) setDropTarget(null); }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (!dragKey || dragKey === s.key) return;
-                    // Only reorder within same group (pinned or unpinned)
-                    const dragPinned = pinned.has(dragKey);
-                    const dropPinned = pinned.has(s.key);
-                    if (dragPinned !== dropPinned) { setDragKey(null); setDropTarget(null); return; }
-                    // Build new order from current filtered list
-                    const keys = filtered.map(f => f.key);
-                    const fromIdx = keys.indexOf(dragKey);
-                    const toIdx = keys.indexOf(s.key);
-                    if (fromIdx === -1 || toIdx === -1) return;
-                    keys.splice(fromIdx, 1);
-                    keys.splice(toIdx, 0, dragKey);
-                    setCustomOrder(keys);
-                    saveOrder(keys);
-                    setDragKey(null);
-                    setDropTarget(null);
-                  }}
-                  onClick={() => { onSwitch(s.key); onClose(); }}
-                  onMouseEnter={() => setFocusIdx(idx)}
-                  className={`group/item w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left text-sm transition-all mb-1 ${
-                    isActive
-                      ? 'bg-[var(--pc-hover)] text-pc-accent-light border border-pc-border shadow-[0_0_12px_rgba(34,211,238,0.08)]'
-                      : s.isActive
-                        ? 'bg-violet-500/5 text-violet-200 border border-violet-500/15 shadow-[0_0_10px_rgba(168,85,247,0.06)]'
-                        : 'text-pc-text-secondary hover:bg-[var(--pc-hover)] border border-transparent'
-                  } ${isFocused && !isActive ? 'ring-1 ring-[var(--pc-accent-dim)]' : ''} ${isDragged ? 'opacity-40' : ''} ${isDropTarget ? 'ring-1 ring-[var(--pc-accent)] bg-[var(--pc-accent-glow)]' : ''}`}
-                >
-                  <div className="relative">
-                    <SessionIcon session={s} isActive={s.isActive} isCurrentSession={isActive} />
-                    {s.isActive && (
-                      <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(168,85,247,0.7)] animate-pulse" />
-                    )}
-                    {s.hasUnread && !isActive && (
-                      <span className="absolute -top-0.5 -left-0.5 h-2 w-2 rounded-full bg-[var(--pc-accent)] shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+              <button
+                key={ac.agent.id}
+                role="option"
+                aria-selected={isActive}
+                onClick={() => { onSwitch(ac.key); onClose(); }}
+                onMouseEnter={() => setFocusIdx(idx)}
+                className={`group/item w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left text-sm transition-all mb-1 ${
+                  isActive
+                    ? 'bg-[var(--pc-hover)] text-pc-accent-light border border-pc-border shadow-[0_0_12px_rgba(34,211,238,0.08)]'
+                    : isStreaming
+                      ? 'bg-violet-500/5 text-violet-200 border border-violet-500/15 shadow-[0_0_10px_rgba(168,85,247,0.06)]'
+                      : 'text-pc-text-secondary hover:bg-[var(--pc-hover)] border border-transparent'
+                } ${isFocused && !isActive ? 'ring-1 ring-[var(--pc-accent-dim)]' : ''}`}
+              >
+                {/* Agent icon */}
+                <div className="relative shrink-0">
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+                    isActive ? 'bg-[var(--pc-accent-glow)] border border-[var(--pc-accent-dim)]' : 'bg-pc-elevated/50 border border-pc-border'
+                  }`}>
+                    {ac.agent.identity?.emoji ? (
+                      <span className="text-base leading-none">{ac.agent.identity.emoji}</span>
+                    ) : (
+                      <Bot size={16} className={isActive ? 'text-pc-accent-light' : 'text-pc-text-muted'} />
                     )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="flex-1 truncate">{sessionDisplayName(s)}</span>
-                      {(() => {
-                        const rel = relativeTime(s.updatedAt);
-                        return rel ? <span className="text-[10px] text-pc-text-muted tabular-nums shrink-0">{rel}</span> : null;
-                      })()}
+                  {isStreaming && (
+                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-violet-400 shadow-[0_0_8px_rgba(168,85,247,0.7)] animate-pulse" />
+                  )}
+                  {hasUnread && !isActive && (
+                    <span className="absolute -top-0.5 -left-0.5 h-2 w-2 rounded-full bg-[var(--pc-accent)] shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+                  )}
+                </div>
+
+                {/* Agent info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="flex-1 truncate font-medium">{displayName}</span>
+                    {(() => {
+                      const rel = relativeTime(session?.updatedAt);
+                      return rel ? <span className="text-[10px] text-pc-text-muted tabular-nums shrink-0">{rel}</span> : null;
+                    })()}
+                    {onSplit && session && (
                       <button
-                        onClick={(e) => togglePin(s.key, e)}
+                        onClick={(e) => { e.stopPropagation(); onSplit(ac.key); }}
                         className={`shrink-0 p-0.5 rounded-lg transition-all ${
-                          isPinned
+                          splitSession === ac.key
                             ? 'text-pc-accent opacity-80 hover:opacity-100'
                             : 'text-pc-text-faint opacity-0 group-hover/item:opacity-60 hover:!opacity-100 hover:text-pc-text-secondary'
                         }`}
-                        title={isPinned ? t('sidebar.unpin') : t('sidebar.pin')}
-                        aria-label={isPinned ? t('sidebar.unpin') : t('sidebar.pin')}
+                        title={t('sidebar.openSplit')}
+                        aria-label={t('sidebar.openSplit')}
                       >
-                        <Pin size={12} className={isPinned ? 'fill-current' : ''} />
+                        <Columns2 size={12} />
                       </button>
-                      {onSplit && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onSplit(s.key); }}
-                          className={`shrink-0 p-0.5 rounded-lg transition-all ${
-                            splitSession === s.key
-                              ? 'text-pc-accent opacity-80 hover:opacity-100'
-                              : 'text-pc-text-faint opacity-0 group-hover/item:opacity-60 hover:!opacity-100 hover:text-pc-text-secondary'
-                          }`}
-                          title={t('sidebar.openSplit')}
-                          aria-label={t('sidebar.openSplit')}
-                        >
-                          <Columns2 size={12} />
-                        </button>
-                      )}
+                    )}
+                    {session && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(s.key); }}
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(ac.key); }}
                         className="shrink-0 p-0.5 rounded-lg transition-all text-pc-text-faint opacity-0 group-hover/item:opacity-60 hover:!opacity-100 hover:text-red-400"
                         title={t('sidebar.delete')}
                         aria-label={t('sidebar.delete')}
                       >
                         <Trash2 size={12} />
                       </button>
-                      {s.messageCount != null && (
-                        <span className={`text-[11px] px-2 py-0.5 rounded-full shrink-0 ${isActive ? 'bg-[var(--pc-accent-glow)] text-pc-accent-light' : 'bg-[var(--pc-hover)] text-pc-text-muted'}`}>
-                          {s.messageCount}
-                        </span>
-                      )}
-                    </div>
-                    {s.lastMessagePreview && (
-                      <p className="text-[11px] text-pc-text-muted truncate mt-0.5 leading-tight">{s.lastMessagePreview.replace(/\s+/g, ' ').slice(0, 80)}</p>
                     )}
-                    {(() => {
-                      if (!s.contextTokens) return null;
-                      const pct = Math.min(100, ((s.totalTokens || 0) / s.contextTokens) * 100);
-                      const barOpacity = Math.max(0.35, Math.min(1, pct / 100));
-                      const barStyle = { width: `${pct}%`, backgroundColor: `rgba(var(--pc-accent-rgb), ${barOpacity})` };
-                      return (
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <div className="flex-1 h-[3px] rounded-full bg-[var(--pc-hover)] overflow-hidden">
-                            <div className="h-full rounded-full" style={barStyle} />
-                          </div>
-                          <span className="text-[9px] text-pc-text-muted tabular-nums shrink-0">{Math.round(pct)}%</span>
-                        </div>
-                      );
-                    })()}
+                    {onDeleteAgent && !ac.agent.isDefault && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmDeleteAgent(ac.agent.id); }}
+                        className="shrink-0 p-0.5 rounded-lg transition-all text-pc-text-faint opacity-0 group-hover/item:opacity-60 hover:!opacity-100 hover:text-red-400"
+                        title={t('sidebar.deleteAgent')}
+                        aria-label={t('sidebar.deleteAgent')}
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
                   </div>
-                </button>
-              </div>
+                  {model && (
+                    <span className="text-[10px] text-pc-text-muted">{model}</span>
+                  )}
+                  {session?.lastMessagePreview && (
+                    <p className="text-[11px] text-pc-text-muted truncate mt-0.5 leading-tight">{session.lastMessagePreview.replace(/\s+/g, ' ').slice(0, 80)}</p>
+                  )}
+                </div>
+              </button>
             );
           })}
         </div>
@@ -430,6 +429,108 @@ export function Sidebar({ sessions, activeSession, onSwitch, onDelete, onSplit, 
                 {t('sidebar.delete')}
               </button>
             </div>
+          </div>
+        </>
+      )}
+      {/* Delete agent confirmation dialog */}
+      {confirmDeleteAgent && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]" onClick={() => setConfirmDeleteAgent(null)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[80] w-72 bg-[var(--pc-bg-base)] border border-pc-border-strong rounded-2xl p-5 shadow-2xl">
+            <p className="text-sm text-pc-text mb-4">{t('sidebar.deleteAgentConfirm')}</p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirmDeleteAgent(null)}
+                disabled={isDeletingAgent}
+                className="px-3 py-1.5 text-xs rounded-xl border border-pc-border-strong text-pc-text-secondary hover:bg-[var(--pc-hover)] transition-colors disabled:opacity-50"
+              >
+                {t('sidebar.cancel')}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!onDeleteAgent) return;
+                  setIsDeletingAgent(true);
+                  try {
+                    await onDeleteAgent(confirmDeleteAgent);
+                    setConfirmDeleteAgent(null);
+                  } catch {
+                    // keep dialog open on error
+                  } finally {
+                    setIsDeletingAgent(false);
+                  }
+                }}
+                disabled={isDeletingAgent}
+                className="px-3 py-1.5 text-xs rounded-xl bg-red-500/20 text-red-300 border border-red-500/20 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+              >
+                {isDeletingAgent ? t('sidebar.deleting') : t('sidebar.deleteAgent')}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+      {/* Create agent modal */}
+      {showCreateAgent && (
+        <>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70]" onClick={() => { setShowCreateAgent(false); setCreateError(null); }} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[80] w-80 bg-[var(--pc-bg-base)] border border-pc-border-strong rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-sm font-semibold text-pc-text mb-4">{t('sidebar.newAgentTitle')}</h3>
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleCreateAgent(); }}
+              className="flex flex-col gap-3"
+            >
+              <div>
+                <label className="block text-xs text-pc-text-secondary mb-1">{t('sidebar.agentId')} *</label>
+                <input
+                  type="text"
+                  value={newAgentId}
+                  onChange={e => setNewAgentId(e.target.value)}
+                  placeholder={t('sidebar.agentIdPlaceholder')}
+                  className="w-full px-3 py-1.5 rounded-xl border border-pc-border bg-pc-elevated/30 text-xs text-pc-text placeholder:text-pc-text-muted outline-none focus:ring-1 focus:ring-[var(--pc-accent-dim)] transition-all"
+                  autoFocus
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-pc-text-secondary mb-1">{t('sidebar.agentName')}</label>
+                <input
+                  type="text"
+                  value={newAgentName}
+                  onChange={e => setNewAgentName(e.target.value)}
+                  placeholder={t('sidebar.agentNamePlaceholder')}
+                  className="w-full px-3 py-1.5 rounded-xl border border-pc-border bg-pc-elevated/30 text-xs text-pc-text placeholder:text-pc-text-muted outline-none focus:ring-1 focus:ring-[var(--pc-accent-dim)] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-pc-text-secondary mb-1">{t('sidebar.agentEmoji')}</label>
+                <input
+                  type="text"
+                  value={newAgentEmoji}
+                  onChange={e => setNewAgentEmoji(e.target.value)}
+                  placeholder={t('sidebar.agentEmojiPlaceholder')}
+                  className="w-full px-3 py-1.5 rounded-xl border border-pc-border bg-pc-elevated/30 text-xs text-pc-text placeholder:text-pc-text-muted outline-none focus:ring-1 focus:ring-[var(--pc-accent-dim)] transition-all"
+                  maxLength={2}
+                />
+              </div>
+              {createError && (
+                <p className="text-xs text-red-400">{createError}</p>
+              )}
+              <div className="flex gap-2 justify-end mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateAgent(false); setCreateError(null); }}
+                  className="px-3 py-1.5 text-xs rounded-xl border border-pc-border-strong text-pc-text-secondary hover:bg-[var(--pc-hover)] transition-colors"
+                >
+                  {t('sidebar.cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={!newAgentId.trim() || isCreating}
+                  className="px-3 py-1.5 text-xs rounded-xl bg-[var(--pc-accent-glow)] text-pc-accent-light border border-[var(--pc-accent-dim)] hover:bg-[var(--pc-accent-dim)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? t('sidebar.creating') : t('sidebar.create')}
+                </button>
+              </div>
+            </form>
           </div>
         </>
       )}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { ChatMessageComponent } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { TypingIndicator } from './TypingIndicator';
@@ -74,6 +74,8 @@ export function Chat({ messages, isGenerating, isLoadingHistory, status, session
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const userSentRef = useRef(false);
+  const initialScrollDoneRef = useRef(false);
+  const prevMsgCountRef = useRef(0);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
 
   const checkIfNearBottom = useCallback(() => {
@@ -97,10 +99,33 @@ export function Chat({ messages, isGenerating, isLoadingHistory, status, session
     return () => el.removeEventListener('scroll', handler);
   }, [checkIfNearBottom]);
 
-  // Auto-scroll when messages change, but only if user is near bottom or just sent a message
+  // Reset scroll state when switching sessions (messages get cleared)
+  useLayoutEffect(() => {
+    if (messages.length === 0) {
+      initialScrollDoneRef.current = false;
+      prevMsgCountRef.current = 0;
+    }
+  }, [messages.length]);
+
+  // Instantly jump to bottom when messages first appear after a session load.
+  // useLayoutEffect ensures this runs after DOM update but before paint — no visible scroll.
+  useLayoutEffect(() => {
+    if (!initialScrollDoneRef.current && messages.length > 0) {
+      initialScrollDoneRef.current = true;
+      const el = scrollContainerRef.current;
+      if (el) el.scrollTop = el.scrollHeight;
+      isNearBottomRef.current = true;
+      prevMsgCountRef.current = messages.length;
+    }
+  }, [messages.length]);
+
+  // Auto-scroll when messages change, but only if user is near bottom or just sent a message.
+  // Skip until initial scroll is done to prevent smooth-scroll animation on load.
   useEffect(() => {
+    if (!initialScrollDoneRef.current) return;
+    if (messages.length === prevMsgCountRef.current) return;
+    prevMsgCountRef.current = messages.length;
     if (userSentRef.current) {
-      // User just sent a message — always scroll to bottom
       userSentRef.current = false;
       scrollToBottom('smooth');
       isNearBottomRef.current = true;

@@ -27,6 +27,14 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: `http://localhost:${process.env.API_PORT || 3100}`,
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [react(), tailwindcss(), swVersionPlugin()],
   build: {
     rollupOptions: {

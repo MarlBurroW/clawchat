@@ -3,7 +3,7 @@ import { GatewayClient, type JsonPayload } from '../lib/gateway';
 import { genIdempotencyKey } from '../lib/utils';
 import { getStoredCredentials, storeCredentials, clearCredentials } from '../lib/credentials';
 import { isSystemEvent } from '../lib/systemEvent';
-import type { ChatMessage, MessageBlock, ConnectionStatus, Session, AgentIdentity } from '../types';
+import type { ChatMessage, MessageBlock, ConnectionStatus, Session, AgentIdentity, Agent } from '../types';
 
 interface ChatPayloadMessage {
   content?: string | Array<{ type: string; text?: string; thinking?: string }>;
@@ -54,6 +54,7 @@ export function useGateway() {
   const [activeSessions, setActiveSessions] = useState<Set<string>>(new Set());
   const [unreadSessions, setUnreadSessions] = useState<Set<string>>(new Set());
   const [agentIdentity, setAgentIdentity] = useState<AgentIdentity | null>(null);
+  const [agents, setAgents] = useState<Agent[]>([]);
 
   const handleAgentEvent = useCallback((payload: JsonPayload) => {
     if (payload?.stream !== 'tool') return;
@@ -118,6 +119,23 @@ export function useGateway() {
       }
     } catch {
       // Silently ignore — identity is optional
+    }
+  }, []);
+
+  const loadAgents = useCallback(async () => {
+    try {
+      const res = await clientRef.current?.send('agents.list', {});
+      const agentList = res?.agents as Array<Record<string, unknown>> | undefined;
+      if (agentList) {
+        setAgents(agentList.map((a) => ({
+          id: a.id as string,
+          identity: a.identity as Agent['identity'],
+          model: a.model as string | undefined,
+          isDefault: a.isDefault as boolean | undefined,
+        })));
+      }
+    } catch {
+      // Silently ignore — agents.list may not be supported
     }
   }, []);
 
@@ -256,6 +274,7 @@ export function useGateway() {
         storeCredentials(wsUrl, token);
         loadSessions();
         loadAgentIdentity();
+        loadAgents();
         loadHistory(activeSessionRef.current);
       } else if (s === 'disconnected' && !client.isConnected) {
         // If we never connected successfully, this is an auth/connection error
@@ -382,7 +401,7 @@ export function useGateway() {
     isConnectingRef.current = true;
     setConnectError(null);
     client.connect();
-  }, [handleAgentEvent, loadHistory, loadSessions, loadAgentIdentity]);
+  }, [handleAgentEvent, loadHistory, loadSessions, loadAgentIdentity, loadAgents]);
 
   // On mount: try stored credentials
   const initRef = useRef(false);
@@ -450,6 +469,45 @@ export function useGateway() {
     loadHistory(key);
   }, [loadHistory]);
 
+  const createSession = useCallback((agentId?: string) => {
+    const agent = agentId || 'main';
+    switchSession(`agent:${agent}:main`);
+  }, [switchSession]);
+
+  const createAgent = useCallback(async (opts: { id: string; name?: string; emoji?: string }) => {
+    const apiBase = window.location.origin;
+    const res = await fetch(`${apiBase}/api/agents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: opts.id, name: opts.name }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Failed to create agent');
+    }
+    // Wait a moment for the agent list to refresh after hot-reload
+    await loadAgents();
+    switchSession(`agent:${opts.id}:main`);
+  }, [loadAgents, switchSession]);
+
+  const deleteAgent = useCallback(async (agentId: string) => {
+    const apiBase = window.location.origin;
+    const res = await fetch(`${apiBase}/api/agents`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: agentId }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Failed to delete agent');
+    }
+    await loadAgents();
+    // If the deleted agent was active, switch to main
+    if (activeSessionRef.current.startsWith(`agent:${agentId}:`)) {
+      switchSession('agent:main:main');
+    }
+  }, [loadAgents, switchSession]);
+
   const login = useCallback((url: string, token: string) => {
     setupClient(url, token);
   }, [setupClient]);
@@ -510,8 +568,8 @@ export function useGateway() {
 
   return {
     status, messages, sessions: enrichedSessions, activeSession, isGenerating, isLoadingHistory,
-    sendMessage, abort, switchSession, loadSessions, deleteSession,
-    authenticated, login, logout, connectError, isConnecting, agentIdentity,
+    sendMessage, abort, switchSession, createSession, createAgent, deleteAgent, loadSessions, deleteSession,
+    authenticated, login, logout, connectError, isConnecting, agentIdentity, agents,
     getClient, addEventListener,
   };
 }

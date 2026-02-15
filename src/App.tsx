@@ -28,8 +28,8 @@ function getSavedSplitRatio(): number {
 export default function App() {
   const {
     status, messages, sessions, activeSession, isGenerating, isLoadingHistory,
-    sendMessage, abort, switchSession, deleteSession,
-    authenticated, login, logout, connectError, isConnecting, agentIdentity,
+    sendMessage, abort, switchSession, deleteSession, createAgent, deleteAgent,
+    authenticated, login, logout, connectError, isConnecting, agentIdentity, agents,
     getClient, addEventListener,
   } = useGateway();
   const [splitSession, setSplitSession] = useState<string | null>(null);
@@ -141,6 +141,7 @@ export default function App() {
       <a href="#chat-input" className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-pc-accent focus:text-white focus:text-sm focus:font-medium">{t('app.skipToChat')}</a>
       <Sidebar
         sessions={sessions}
+        agents={agents}
         activeSession={activeSession}
         onSwitch={switchSession}
         onDelete={deleteSession}
@@ -148,11 +149,13 @@ export default function App() {
         splitSession={splitSession}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        onCreateAgent={createAgent}
+        onDeleteAgent={deleteAgent}
       />
       <div ref={splitContainerRef} className="flex-1 flex min-w-0" aria-hidden={sidebarOpen ? true : undefined}>
         {/* Primary pane */}
         <main className="flex flex-col min-w-0" style={splitSession ? { width: `${splitRatio}%` } : { flex: 1 }} aria-label={t('app.mainChat')}>
-          <Header status={status} sessionKey={activeSession} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} activeSessionData={sessions.find(s => s.key === activeSession)} onLogout={logout} soundEnabled={soundEnabled} onToggleSound={toggleSound} messages={messages} agentAvatarUrl={agentIdentity?.avatar} />
+          <Header status={status} sessionKey={activeSession} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} activeSessionData={sessions.find(s => s.key === activeSession)} onLogout={logout} soundEnabled={soundEnabled} onToggleSound={toggleSound} messages={messages} />
           <ConnectionBanner status={status} />
           <Suspense fallback={<div className="flex-1 flex items-center justify-center text-pc-text-muted"><div className="animate-pulse text-sm">Loading…</div></div>}>
             <Chat messages={messages} isGenerating={isGenerating} isLoadingHistory={isLoadingHistory} status={status} sessionKey={activeSession} onSend={sendMessage} onAbort={abort} agentAvatarUrl={agentIdentity?.avatar} />

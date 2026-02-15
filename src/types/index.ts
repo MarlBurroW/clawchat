@@ -44,6 +44,17 @@ export interface AgentIdentity {
   agentId?: string;
 }
 
+export interface Agent {
+  id: string;
+  identity?: {
+    name?: string;
+    emoji?: string;
+    avatar?: string;
+  };
+  model?: string;
+  isDefault?: boolean;
+}
+
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected';
 
 export interface GatewayState {

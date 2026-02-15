@@ -443,9 +443,7 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
       <div className="shrink-0 mt-1 flex h-9 w-9 items-center justify-center rounded-2xl border border-pc-border bg-pc-elevated/40 overflow-hidden">
         {isUser
           ? <User className="h-4 w-4 text-pc-accent-light" />
-          : agentAvatarUrl
-            ? <img src={agentAvatarUrl} alt="Agent" className="h-full w-full object-cover" />
-            : <Bot className="h-4 w-4 text-pc-accent-light" />
+          : <Bot className="h-4 w-4 text-pc-accent-light" />
         }
       </div>
 

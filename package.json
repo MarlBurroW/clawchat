@@ -33,6 +33,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "server": "node server.js",
     "preview": "vite preview",
     "lint:fix": "eslint . --fix"
   },
