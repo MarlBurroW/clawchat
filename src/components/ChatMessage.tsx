@@ -312,27 +312,6 @@ function InternalOnlyMessage({ message }: { message: ChatMessageType }) {
   );
 }
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }, [text]);
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="absolute -top-3 right-2 h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light hover:border-[var(--pc-accent-dim)] transition-all opacity-0 group-hover:opacity-100"
-      title={copied ? t('message.copied') : t('message.copy')}
-      aria-label={t('message.copy')}
-    >
-      {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-    </button>
-  );
-}
-
 function MetadataViewer({ metadata }: { metadata?: Record<string, unknown> }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -529,29 +508,36 @@ export const ChatMessageComponent = memo(function ChatMessageComponent({ message
                 : 'bg-[rgba(var(--pc-accent-rgb),0.08)] text-pc-text border border-[rgba(var(--pc-accent-rgb),0.2)]')
             : 'bg-pc-elevated/40 text-pc-text border border-pc-border shadow-[0_0_0_1px_rgba(255,255,255,0.03)]'
         }`}>
-          {/* Action buttons */}
-          {!isUser && !message.isStreaming && getPlainText(message).trim() && (
-            <CopyButton text={getPlainText(message)} />
-          )}
-          <div className={`absolute -top-3 ${isUser ? 'left-2' : 'right-10'} flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-10`}>
+          {/* Action buttons — bottom-right toolbar, inside the bubble */}
+          <div className={`flex gap-1 justify-end mt-1.5 -mb-1 opacity-0 group-hover:opacity-100 transition-all`}>
+            {!isUser && !message.isStreaming && getPlainText(message).trim() && (
+              <button
+                onClick={() => { navigator.clipboard.writeText(getPlainText(message)); }}
+                className="h-6 w-6 rounded-md flex items-center justify-center text-pc-text-faint hover:text-pc-accent-light transition-colors"
+                title={t('message.copy')}
+                aria-label={t('message.copy')}
+              >
+                <Copy size={12} />
+              </button>
+            )}
             {onReply && (
               <button
                 onClick={(e) => { e.stopPropagation(); onReply(getPlainText(message).slice(0, 120)); }}
-                className="h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center text-pc-text-secondary hover:text-pc-accent-light hover:border-[var(--pc-accent-dim)] transition-all"
+                className="h-6 w-6 rounded-md flex items-center justify-center text-pc-text-faint hover:text-pc-accent-light transition-colors"
                 title={t('message.reply')}
                 aria-label={t('message.reply')}
               >
-                <Reply size={13} />
+                <Reply size={12} />
               </button>
             )}
             {onToggleBookmark && (
               <button
                 onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
-                className={`h-7 w-7 rounded-lg border border-pc-border bg-pc-elevated/80 backdrop-blur-sm flex items-center justify-center transition-all ${isBookmarked ? 'text-amber-400 opacity-100' : 'text-pc-text-secondary hover:text-amber-400'}`}
+                className={`h-6 w-6 rounded-md flex items-center justify-center transition-colors ${isBookmarked ? 'text-amber-400' : 'text-pc-text-faint hover:text-amber-400'}`}
                 title={isBookmarked ? t('message.removeBookmark') : t('message.bookmark')}
                 aria-label={isBookmarked ? t('message.removeBookmark') : t('message.bookmark')}
               >
-                <Bookmark size={13} className={isBookmarked ? 'fill-amber-400' : ''} />
+                <Bookmark size={12} className={isBookmarked ? 'fill-amber-400' : ''} />
               </button>
             )}
             <MetadataViewer metadata={message.metadata} />
