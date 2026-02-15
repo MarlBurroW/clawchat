@@ -792,11 +792,13 @@
 ## Item #73
 - **Date:** 2026-02-14
 - **Priority:** medium
-- **Status:** open
+- **Status:** done
+- **Completed:** 2026-02-15 — commit `e1ba4aa`, tagged `v1.57.1`
 - **Description:** Message action buttons (copy, view source, etc.) are misaligned when hovering over message text. The buttons overlay/overlap the text content incorrectly. They should be properly positioned outside the text area or in a consistent location that doesn't interfere with reading. (Feedback from Bardak, screenshot: https://i.imgur.com/O9CwAix.png)
 
 ## Item #74
 - **Date:** 2026-02-14
 - **Priority:** high
-- **Status:** open
+- **Status:** done
+- **Completed:** 2026-02-15 — commit `e1ba4aa`, tagged `v1.57.1`
 - **Description:** Session deletion doesn't persist — when deleting a session from the sidebar, it disappears visually but comes back on page reload. The deletion is only client-side/cosmetic and doesn't actually delete the session from the OpenClaw backend. Need to call the proper API endpoint to actually delete/archive the session server-side. (Feedback from Bardak)
