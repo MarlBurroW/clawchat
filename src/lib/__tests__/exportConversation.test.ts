@@ -60,7 +60,7 @@ describe('exportAsMarkdown', () => {
   it('renders tool_result blocks truncated', () => {
     const longContent = 'x'.repeat(3000);
     const msgs = [
-      makeMsg('assistant', '', [{ type: 'tool_result', content: longContent, tool_use_id: 't1' }]),
+      makeMsg('assistant', '', [{ type: 'tool_result', content: longContent, toolUseId: 't1' }]),
     ];
     const md = exportAsMarkdown(msgs);
     expect(md).toContain('**📋 Result:**');
