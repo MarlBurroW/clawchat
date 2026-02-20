@@ -10,7 +10,7 @@ export interface Bookmark {
   bookmarkedAt: number;
 }
 
-function loadBookmarks(): Bookmark[] {
+export function loadBookmarks(): Bookmark[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Bookmark[];
@@ -18,7 +18,7 @@ function loadBookmarks(): Bookmark[] {
   return [];
 }
 
-function saveBookmarks(bookmarks: Bookmark[]) {
+export function saveBookmarks(bookmarks: Bookmark[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks));
   } catch { /* noop */ }

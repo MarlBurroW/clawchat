@@ -54,7 +54,7 @@ export function useUpdateCheck(currentVersion: string): UpdateInfo {
 }
 
 /** True if remote is newer than local (semver compare) */
-function isNewer(remote: string, local: string): boolean {
+export function isNewer(remote: string, local: string): boolean {
   const r = remote.split('.').map(Number);
   const l = local.split('.').map(Number);
   for (let i = 0; i < 3; i++) {
